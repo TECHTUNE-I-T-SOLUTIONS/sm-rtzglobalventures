@@ -1,0 +1,1 @@
+ALTER TABLE notifications ADD COLUMN role TEXT NOT NULL DEFAULT 'user';
