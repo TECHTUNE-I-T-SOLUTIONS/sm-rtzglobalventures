@@ -219,7 +219,6 @@ __metadata:
 "@next/swc-win32-x64-msvc@npm:14.2.16":
   version: 14.2.16
   resolution: "@next/swc-win32-x64-msvc@npm:14.2.16"
-  checksum: 10c0/e85f92eca235e6605262c89a45c3b8ea99e8088dec4bf2fa4b16d3dce64f2f5c6653efcac7a23ac98fbb148d2cd18845309c18618d4a63062790b79ee5203561
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -3843,7 +3842,6 @@ __metadata:
     "@google/generative-ai": "npm:latest"
     "@hookform/resolvers": "npm:^3.9.1"
     "@next/env": "npm:14.2.16"
-    "@next/swc-win32-x64-msvc": "npm:14.2.16"
     "@ngrok/ngrok": "npm:^1.5.2"
     "@playwright/test": "npm:^1.54.2"
     "@radix-ui/react-accordion": "npm:1.2.2"
