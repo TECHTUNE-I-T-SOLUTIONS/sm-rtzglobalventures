@@ -51,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const getMenuItems = (): MenuItem[] => {
     return [
       { label: "Refresh", action: () => window.location.reload() },
-      { isSeparator: true },
+      { label: "separator", isSeparator: true },
       { label: "Dashboard", href: "/admin" },
       { label: "Products", href: "/admin/products" },
       { label: "Orders", href: "/admin/orders" },

@@ -12,18 +12,8 @@ import { supabase } from "@/lib/supabase"
 import { BookOpen, Filter } from "lucide-react"
 import { motion } from "framer-motion"
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  subcategory: string | null
-  image_url: string | null
-  stock_quantity: number
-  is_active: boolean
-  created_at: string
-}
+// Use the shared Product type from types/product
+import type { Product } from "c:/Codes/newsmart/types/product"
 
 interface Filters {
   priceRange: [number, number]
@@ -186,10 +176,10 @@ export default function BooksPage() {
                 </CardHeader>
                 <CardContent>
                   <ProductFilters
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    subcategories={subcategories}
-                    maxPrice={Math.max(...products.map((p) => p.price), 50000)}
+                    selectedCategory="books" // Assuming this is always "books" for this page
+                    setSelectedCategory={() => {}} // No category selection on this page
+                    priceRange={filters.priceRange}
+                    setPriceRange={(range) => setFilters((prev) => ({ ...prev, priceRange: range }))}
                   />
                 </CardContent>
               </Card>
@@ -198,7 +188,7 @@ export default function BooksPage() {
         </div>
 
         {/* Products Grid */}
-        <ProductGrid products={filteredProducts} loading={loading} category="books" />
+        <ProductGrid products={filteredProducts} />
 
         {/* Categories Info */}
         <motion.div

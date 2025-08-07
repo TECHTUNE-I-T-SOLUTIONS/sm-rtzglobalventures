@@ -126,7 +126,22 @@ export default function OrderDetailsPage() {
         }
 
         if (data) {
-          setOrder(data as Order)
+          // Transform order_items and profiles to match expected types
+          const transformedOrder: Order = {
+            ...data,
+            order_items: Array.isArray(data.order_items)
+              ? data.order_items.map((item: any) => ({
+                  ...item,
+                  products: Array.isArray(item.products)
+                    ? item.products[0]
+                    : item.products,
+                }))
+              : [],
+            profiles: Array.isArray(data.profiles)
+              ? data.profiles[0]
+              : data.profiles,
+          }
+          setOrder(transformedOrder)
         }
       } catch (err: any) {
         setError(err.message)
@@ -146,15 +161,15 @@ export default function OrderDetailsPage() {
     }
   }
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status?.toLowerCase()) {
       case "paid":
       case "delivered":
-        return "success"
+        return "secondary"
       case "pending":
       case "processing":
       case "shipped":
-        return "warning"
+        return "outline"
       case "failed":
       case "cancelled":
         return "destructive"

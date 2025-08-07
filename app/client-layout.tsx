@@ -26,7 +26,7 @@ export function ClientLayout({
   const getMenuItems = (): MenuItem[] => {
     const baseItems: MenuItem[] = [
       { label: "Refresh", action: () => window.location.reload() },
-      { isSeparator: true },
+      { label: "separator", isSeparator: true },
       { label: "Home", href: "/" },
       { label: "Products", href: "/products" },
       { label: "About Us", href: "/about" },
@@ -36,7 +36,7 @@ export function ClientLayout({
     if (user) {
       return [
         ...baseItems,
-        { isSeparator: true },
+        { label: "separator", isSeparator: true },
         { label: "Dashboard", href: "/dashboard" },
         { label: "My Orders", href: "/dashboard/orders" },
         { label: "My Services", href: "/dashboard/services" },
