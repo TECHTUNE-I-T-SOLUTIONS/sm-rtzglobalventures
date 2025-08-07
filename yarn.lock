@@ -2122,6 +2122,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@supabase/ssr@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "@supabase/ssr@npm:0.6.1"
+  dependencies:
+    cookie: "npm:^1.0.1"
+  peerDependencies:
+    "@supabase/supabase-js": ^2.43.4
+  checksum: 10c0/a3b98b5eae50b6e1a58ef3abc5fbcd298ad20f4602a3a5835ab3946ddfb482e5a5c50789c577498ea30e64939b5019859ea7e4566eb417b6bc1624f7a5635e8b
+  languageName: node
+  linkType: hard
+
 "@supabase/storage-js@npm:^2.10.4":
   version: 2.10.4
   resolution: "@supabase/storage-js@npm:2.10.4"
@@ -2694,6 +2705,13 @@ __metadata:
   version: 4.1.1
   resolution: "commander@npm:4.1.1"
   checksum: 10c0/84a76c08fe6cc08c9c93f62ac573d2907d8e79138999312c92d4155bc2325d487d64d13f669b2000c9f8caf70493c1be2dac74fec3c51d5a04f8bc3ae1830bab
+  languageName: node
+  linkType: hard
+
+"cookie@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "cookie@npm:1.0.2"
+  checksum: 10c0/fd25fe79e8fbcfcaf6aa61cd081c55d144eeeba755206c058682257cb38c4bd6795c6620de3f064c740695bb65b7949ebb1db7a95e4636efb8357a335ad3f54b
   languageName: node
   linkType: hard
 
@@ -3872,6 +3890,7 @@ __metadata:
     "@radix-ui/react-toggle-group": "npm:1.1.1"
     "@radix-ui/react-tooltip": "npm:1.1.6"
     "@supabase/auth-helpers-nextjs": "npm:latest"
+    "@supabase/ssr": "npm:^0.6.1"
     "@supabase/supabase-js": "npm:latest"
     "@swc/helpers": "npm:^0.5.3"
     "@types/js-cookie": "npm:^3.0.6"
