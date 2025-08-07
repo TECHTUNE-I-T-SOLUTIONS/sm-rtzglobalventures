@@ -9,7 +9,7 @@ import {
 import { DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 function Calendar({
   className,
@@ -52,13 +52,13 @@ function Calendar({
           defaultClassNames.nav
         ),
         button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
+          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50', // buttonVariants({ variant: buttonVariant }),
           'size-[--cell-size] aria-disabled:opacity-50 p-0 select-none',
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
-          'size-[--cell-size] aria-disabled:opacity-50 p-0 select-none',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50', // buttonVariants({ variant: buttonVariant }),
+          'size-[--cell-size] aria-disabled:opacity-50 p-0 select-none', // size-[--cell-size] aria-disabled:opacity-50 p-0 select-none
           defaultClassNames.button_next
         ),
         month_caption: cn(

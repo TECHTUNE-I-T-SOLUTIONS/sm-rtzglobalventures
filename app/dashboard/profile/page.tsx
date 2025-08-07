@@ -175,7 +175,9 @@ export default function ProfilePage() {
       const lastOrder = orders?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
       
       // Get favorite category
-      const categories = wishlistItems?.map(item => item.products?.category).filter(Boolean)
+      const categories = wishlistItems
+        ?.flatMap(item => Array.isArray(item.products) ? item.products.map(product => product.category) : [])
+        .filter(Boolean)
       const favoriteCategory = categories?.length ? 
         categories.sort((a, b) => 
           categories.filter(v => v === a).length - categories.filter(v => v === b).length

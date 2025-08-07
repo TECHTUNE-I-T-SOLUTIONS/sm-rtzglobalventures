@@ -161,7 +161,9 @@ export default function AdminAnalyticsPage() {
 
       const recentOrders = orders?.slice(0, 5).map(order => ({
         id: order.id,
-        customer_name: (order.profiles as { full_name: string } | null)?.full_name || "Unknown",
+        customer_name: Array.isArray(order.profiles) && order.profiles.length > 0
+          ? order.profiles[0].full_name
+          : "Unknown",
         amount: order.total_amount,
         status: order.status,
         created_at: order.created_at,

@@ -1,10 +1,10 @@
 // Paystack Configuration
 export const PAYSTACK_CONFIG = {
-  publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_8f84ee268227963a668757c75978eb1ead020638',
-  secretKey: process.env.PAYSTACK_SECRET_KEY || 'sk_test_9f489e5d97b655208894577327f5f6229570c07c',
+  publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+  secretKey: process.env.PAYSTACK_SECRET_KEY!,
   baseUrl: 'https://api.paystack.co',
-  callbackUrl: process.env.NEXT_PUBLIC_PAYSTACK_CALLBACK_URL || 'http://localhost:3000/api/paystack/callback',
-  webhookUrl: process.env.PAYSTACK_WEBHOOK_URL || 'https://your-domain.com/api/paystack/webhook'
+  callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/paystack/callback`,
+  webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/paystack/webhook`
 }
 
 // Paystack API functions

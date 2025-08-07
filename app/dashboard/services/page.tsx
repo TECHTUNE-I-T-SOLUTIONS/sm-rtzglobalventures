@@ -219,7 +219,7 @@ export default function BusinessServicesPage() {
 
       toast.success("Service request created successfully!")
       setShowNewServiceModal(false)
-      setNewService({ service_type: "printing", title: "", description: "", priority: "medium" as "low" | "medium" | "high" })
+      setNewService({ service_type: "printing", title: "", description: "", priority: "normal" as "low" | "normal" | "high" })
       setUploadedFiles([])
       fetchServices()
     } catch (error: any) {

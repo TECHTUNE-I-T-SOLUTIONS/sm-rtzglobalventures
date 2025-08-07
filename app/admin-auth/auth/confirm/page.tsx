@@ -44,9 +44,11 @@ function AdminConfirm() {
         }
 
         // Confirm the email using Supabase
+        const email = searchParams.get('email')
         const { error: confirmError } = await supabase.auth.verifyOtp({
           token: code,
-          type: type as any || 'signup'
+          type: type as any || 'signup',
+          email: email || ''
         })
 
         if (confirmError) {
