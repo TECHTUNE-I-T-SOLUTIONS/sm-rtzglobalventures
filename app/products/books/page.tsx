@@ -13,7 +13,7 @@ import { BookOpen, Filter } from "lucide-react"
 import { motion } from "framer-motion"
 
 // Use the shared Product type from types/product
-import type { Product } from "c:/Codes/newsmart/types/product"
+import type { Product } from "../../../types/product"
 
 interface Filters {
   priceRange: [number, number]
