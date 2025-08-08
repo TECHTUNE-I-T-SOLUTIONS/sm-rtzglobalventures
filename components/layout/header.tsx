@@ -167,8 +167,8 @@ export function Header() {
 
       {/* Main Header */}
       <div className="container mx-auto px-4">
-        <div className="container mx-auto px-2 sm:px-4 overflow-x-auto">
-          <div className="flex items-center justify-between py-2 sm:py-4 gap-2 whitespace-nowrap overflow-x-auto">
+        <div className="container mx-auto px-2 sm:px-4">
+          <div className="flex items-center justify-between py-2 sm:py-4 gap-2 whitespace-nowrap">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-1 sm:space-x-2 min-w-fit">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent rounded-lg flex items-center justify-center">
@@ -241,7 +241,7 @@ export function Header() {
 
               {/* User Menu or Auth Buttons */}
               {user ? (
-                <div className="relative">
+                <div className="relative z-[99]">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -262,6 +262,43 @@ export function Header() {
                     </div>
                     <ChevronDown className="h-3 w-3 hidden sm:block" />
                   </Button>
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute right-0 mt-2 w-56 bg-white dark:bg-black border rounded-lg shadow-lg py-2 z-50"
+                      >
+                        <div className="px-4 py-2 border-b">
+                          <p className="font-semibold text-sm">{user.user_metadata?.full_name || "User"}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                        </div>
+                        <nav className="py-1">
+                          {userMenuItems.map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted"
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {item.label}
+                            </Link>
+                          ))}
+                        </nav>
+                        <div className="border-t">
+                          <button
+                            onClick={handleSignOut}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 w-full text-left"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            Sign Out
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ) : (
                 <div className="flex items-center gap-1 sm:gap-2 min-w-fit">
