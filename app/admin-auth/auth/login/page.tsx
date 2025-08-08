@@ -217,7 +217,7 @@ export default function AdminLoginPage() {
               </span>
             </div>
 
-            <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
+            {/* <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
@@ -237,7 +237,7 @@ export default function AdminLoginPage() {
                   </Button>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
