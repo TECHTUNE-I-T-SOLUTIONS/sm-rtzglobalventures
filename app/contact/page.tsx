@@ -41,7 +41,7 @@ const contactMethods = [
     icon: MessageSquare,
     title: "Live Chat",
     description: "Chat with our support team",
-    action: "Start Chat",
+    action: "./dashboard/services",
     color: "bg-orange-500",
   },
 ]
