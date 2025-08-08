@@ -215,7 +215,7 @@ export default function AboutPage() {
               <CardContent className="p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                   <div className="lg:col-span-1">
-                    <div className="relative w-48 h-48 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10">
+                    <div className="relative w-48 h-48 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-primary/80 to-primary/30">
                       <Image
                         src="/smart.png?height=200&width=200"
                         alt="Eneji Daniel Moses"
