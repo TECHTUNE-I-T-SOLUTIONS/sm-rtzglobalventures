@@ -184,7 +184,7 @@ export default function SignupPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" onClick={handleGoogleSignup} disabled>
+                <Button variant="outline" onClick={handleGoogleSignup}>
                   <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
