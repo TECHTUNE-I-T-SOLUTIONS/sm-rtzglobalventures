@@ -1,5 +1,5 @@
 "use client"
-
+ 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
@@ -73,7 +73,12 @@ export default function AdminBusinessServicesPage() {
 
     const pusherChannel = pusherClient.subscribe(selectedService?.id || '')
     pusherChannel.bind('new-message', (data: any) => {
-      fetchServices()
+      if (selectedService && data.channel === selectedService.id) {
+        setSelectedService((prev) => {
+          if (!prev) return null
+          return { ...prev, messages: [...prev.messages, data.message] }
+        })
+      }
     })
 
     const supabaseChannel = supabase
