@@ -47,7 +47,7 @@ const subsidiaries = [
   {
     icon: Building2,
     name: "Business Center",
-    description: "Professional document services for students and professionals",
+    description: "Professional document services for students, lecturers and professionals",
     features: ["Document Printing", "Project Analysis", "Editing Services", "Consultation"],
   },
 ]
@@ -217,7 +217,7 @@ export default function AboutPage() {
                   <div className="lg:col-span-1">
                     <div className="relative w-48 h-48 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10">
                       <Image
-                        src="/placeholder.svg?height=200&width=200"
+                        src="/smart.png?height=200&width=200"
                         alt="Eneji Daniel Moses"
                         fill
                         className="object-cover"
@@ -228,8 +228,8 @@ export default function AboutPage() {
                     <h3 className="text-2xl font-bold mb-2">Eneji Daniel Moses</h3>
                     <p className="text-primary font-semibold mb-4">Chief Executive Officer</p>
                     <p className="text-muted-foreground leading-relaxed mb-6">
-                      "Our journey began with a simple vision: to make quality digital solutions accessible to every
-                      student. Today, Sm@rtz Global Enterprise stands as a testament to what's possible when innovation
+                      "Our journey began with a simple vision: to make quality digital solutions accessible to everybody
+                      (including students). Today, Sm@rtz Global Enterprise stands as a testament to what's possible when innovation
                       is combined with dedication. We're not just a business; we're a partner in your academic and professional
                       success."
                     </p>
