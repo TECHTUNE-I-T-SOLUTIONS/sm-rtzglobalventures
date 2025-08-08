@@ -159,6 +159,9 @@ export function Header() {
                 <Star className="h-3 w-3 mr-1" />
                 New Website Launch!
               </Badge>
+              <Badge variant="outline" className="text-xs animate-pulse">
+                in beta
+              </Badge>
               <span className="hidden sm:inline">Welcome to Sm@rtz Global Enterprise</span>
             </div>
           </div>

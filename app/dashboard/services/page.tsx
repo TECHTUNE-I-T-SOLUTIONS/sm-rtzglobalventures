@@ -12,7 +12,7 @@ import { Plus, FileText, Edit3, BarChart3, Printer, Upload, MessageCircle, Clock
 import { motion, AnimatePresence } from "framer-motion"
 import toast from "react-hot-toast"
 import { pusherClient } from "@/lib/pusher"
- 
+
 interface BusinessService {
   id: string
   service_type: "printing" | "editing" | "analysis" | "other"
@@ -119,7 +119,12 @@ export default function BusinessServicesPage() {
     if (selectedService) {
       const pusherChannel = pusherClient.subscribe(selectedService.id);
       pusherChannel.bind('new-message', (data: any) => {
-        fetchServices();
+        if (selectedService && data.channel === selectedService.id) {
+          setSelectedService((prev) => {
+            if (!prev) return null
+            return { ...prev, messages: [...prev.messages, data.message] }
+          })
+        }
       });
 
       return () => {

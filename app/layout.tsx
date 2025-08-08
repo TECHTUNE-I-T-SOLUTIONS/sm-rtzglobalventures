@@ -7,9 +7,9 @@ import { ClientLayout } from "./client-layout"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Sm@rtz Global Enterprise - Your One-Stop Digital Solutions",
+  title: "Sm@rtz Global Enterprise - Your One-Stop Digital Solutions (in beta)",
   description:
-    "Leading provider of computer accessories, books, and business services. Shop computers, books, and get professional document services.",
+    "Leading provider of computer accessories, books, and business services. Shop computers, books, and get professional document services. (in beta)",
   keywords: "computer accessories, bookstore, business services, printing, Ilorin, Nigeria",
   authors: [{ name: "Sm@rtz Global Enterprise" }],
   openGraph: {
