@@ -81,15 +81,15 @@ export default function SupportPage() {
     {
       icon: Phone,
       title: "Phone Support",
-      description: "+234 123 456 7890",
+      description: "+234 815 664 5378",
       action: "Call Now",
-      onClick: () => window.open("tel:+2341234567890"),
+      onClick: () => window.open("tel:+2348156645378"),
       available: true,
     },
     {
       icon: Mail,
       title: "Email Support",
-      description: "support@smartzglobal.com",
+      description: "printatsmartz@gmail.com",
       action: "Send Email",
       onClick: () => window.open("mailto:printatsmartz@gmail.com"),
       available: true,
@@ -97,7 +97,7 @@ export default function SupportPage() {
     {
       icon: Clock,
       title: "Business Hours",
-      description: "Mon-Fri: 9AM-6PM WAT",
+      description: "Mon-Fri: 6AM-6PM WAT",
       action: "View Schedule",
       onClick: () => {},
       available: false,
