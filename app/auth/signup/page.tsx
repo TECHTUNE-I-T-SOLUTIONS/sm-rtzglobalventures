@@ -157,11 +157,11 @@ export default function SignupPage() {
               <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 rounded-lg bg-transparent flex items-center justify-center">
                 <span className="text-white font-bold text-lg">
-                <img
-                  src="/logo.png"
-                  alt="Sm@rtz Global Logo"
-                  className="h-16 w-16 sm:h-12 sm:w-12 object-contain"
-                />
+                  <img
+                    src="/logo.png"
+                    alt="Sm@rtz Global Logo"
+                    className="h-16 w-16 sm:h-12 sm:w-12 object-contain"
+                  />
                 </span>
               </div>
               </div>
@@ -184,7 +184,7 @@ export default function SignupPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" onClick={handleGoogleSignup}>
+                <Button variant="outline" onClick={handleGoogleSignup} disabled>
                   <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
@@ -242,8 +242,14 @@ export default function SignupPage() {
         <Card>
           <CardHeader className="text-center">
             <div className="flex items-center justify-center mb-4">
-              <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">S@</span>
+              <div className="h-16 w-16 rounded-lg bg-transparent flex items-center justify-center">
+                <span className="text-white font-bold text-lg">
+                  <img
+                    src="/logo.png"
+                    alt="Sm@rtz Global Logo"
+                    className="h-16 w-16 sm:h-12 sm:w-12 object-contain"
+                  />
+                </span>
               </div>
             </div>
             <CardTitle className="text-2xl">{step === 1 ? "Create Account" : "Security Questions"}</CardTitle>
