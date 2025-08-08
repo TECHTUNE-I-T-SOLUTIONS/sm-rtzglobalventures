@@ -378,7 +378,7 @@ export default function OrdersPage() {
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-background text-sm appearance-none"
+                      className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none"
                     >
                       <option value="all">All Status</option>
                       <option value="pending">Pending</option>
@@ -395,7 +395,7 @@ export default function OrdersPage() {
                     <select
                       value={paymentFilter}
                       onChange={(e) => setPaymentFilter(e.target.value)}
-                      className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-background text-sm appearance-none"
+                      className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none"
                     >
                       <option value="all">All Payments</option>
                       <option value="paid">Paid</option>
@@ -410,7 +410,7 @@ export default function OrdersPage() {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-background text-sm appearance-none"
+                      className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none"
                     >
                       <option value="newest">Newest First</option>
                       <option value="oldest">Oldest First</option>
