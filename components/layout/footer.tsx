@@ -108,9 +108,6 @@ export function Footer() {
               <Link href="/terms" className="text-gray-400 hover:text-primary text-sm">
                 Terms of Service
               </Link>
-              <Link href="/admin-auth" className="text-gray-400 hover:text-primary text-sm">
-                Admin Access
-              </Link>
             </div>
           </div>
           <div className="text-center mt-4">
