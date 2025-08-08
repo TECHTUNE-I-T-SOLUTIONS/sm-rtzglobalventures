@@ -38,29 +38,38 @@ NODE_ENV=development
 MAILTRAP_TOKEN=dabf28e2e9c89881e938b3a1c6215380
 
 
-POSTGRES_URL="postgres://postgres.xnaxpvctblhumcjfnxns:TFnQpheX0BsvsMl2@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
-POSTGRES_USER="postgres"
-POSTGRES_HOST="db.xnaxpvctblhumcjfnxns.supabase.co"
-SUPABASE_JWT_SECRET="nMuYDAXdKmXqBzKVF34GJqOUb4xyuOlKaa5sQDLHChjwkaWjUk5UALRJv4TnQW284Ltn04ar9GQFhOqWA6ex6w=="
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuYXhwdmN0YmxodW1jamZueG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2Mjc5NzUsImV4cCI6MjA2OTIwMzk3NX0.RGa9X5oiSNnxQOc00G2FNwVE6HqjOrNN0wn9XgRCmvM"
-POSTGRES_PRISMA_URL="postgres://postgres.xnaxpvctblhumcjfnxns:TFnQpheX0BsvsMl2@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
-POSTGRES_PASSWORD="TFnQpheX0BsvsMl2"
-POSTGRES_DATABASE="postgres"
-SUPABASE_URL="https://xnaxpvctblhumcjfnxns.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuYXhwdmN0YmxodW1jamZueG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2Mjc5NzUsImV4cCI6MjA2OTIwMzk3NX0.RGa9X5oiSNnxQOc00G2FNwVE6HqjOrNN0wn9XgRCmvM"
-NEXT_PUBLIC_SUPABASE_URL="https://xnaxpvctblhumcjfnxns.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuYXhwdmN0YmxodW1jamZueG5zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzYyNzk3NSwiZXhwIjoyMDY5MjAzOTc1fQ.2Tmzs9egMY1Y3iWPLwgs576-hBzkizkjMdx_cfFQlyE"
-POSTGRES_URL_NON_POOLING="postgres://postgres.xnaxpvctblhumcjfnxns:TFnQpheX0BsvsMl2@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_GEMINI_API_KEY=AIzaSyA_dMqQ3rfaYLM32tLVpQmtTk6eh4JQKbI
-PAYSTACK_SECRET_KEY=
-OPAY_MERCHANT_ID=
-OPAY_PUBLIC_KEY=
-OPAY_PRIVATE_KEY=
+# POSTGRES_URL="postgres://postgres.xnaxpvctblhumcjfnxns:TFnQpheX0BsvsMl2@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+# POSTGRES_USER="postgres"
+# POSTGRES_HOST="db.xnaxpvctblhumcjfnxns.supabase.co"
+# SUPABASE_JWT_SECRET="nMuYDAXdKmXqBzKVF34GJqOUb4xyuOlKaa5sQDLHChjwkaWjUk5UALRJv4TnQW284Ltn04ar9GQFhOqWA6ex6w=="
+# NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuYXhwdmN0YmxodW1jamZueG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2Mjc5NzUsImV4cCI6MjA2OTIwMzk3NX0.RGa9X5oiSNnxQOc00G2FNwVE6HqjOrNN0wn9XgRCmvM"
+# POSTGRES_PRISMA_URL="postgres://postgres.xnaxpvctblhumcjfnxns:TFnQpheX0BsvsMl2@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
+# POSTGRES_PASSWORD="TFnQpheX0BsvsMl2"
+# POSTGRES_DATABASE="postgres"
+# SUPABASE_URL="https://xnaxpvctblhumcjfnxns.supabase.co"
+# NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuYXhwdmN0YmxodW1jamZueG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2Mjc5NzUsImV4cCI6MjA2OTIwMzk3NX0.RGa9X5oiSNnxQOc00G2FNwVE6HqjOrNN0wn9XgRCmvM"
+# NEXT_PUBLIC_SUPABASE_URL="https://xnaxpvctblhumcjfnxns.supabase.co"
+# SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuYXhwdmN0YmxodW1jamZueG5zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzYyNzk3NSwiZXhwIjoyMDY5MjAzOTc1fQ.2Tmzs9egMY1Y3iWPLwgs576-hBzkizkjMdx_cfFQlyE"
+# POSTGRES_URL_NON_POOLING="postgres://postgres.xnaxpvctblhumcjfnxns:TFnQpheX0BsvsMl2@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+# NEXT_PUBLIC_APP_URL=http://localhost:3000
+# NEXT_PUBLIC_GEMINI_API_KEY=AIzaSyA_dMqQ3rfaYLM32tLVpQmtTk6eh4JQKbI
+# PAYSTACK_SECRET_KEY=
+# OPAY_MERCHANT_ID=
+# OPAY_PUBLIC_KEY=
+# OPAY_PRIVATE_KEY=
 
-# EmailJS Configuration (Optional - for production email sending)
-# Get these from https://www.emailjs.com/
-EMAILJS_SERVICE_ID=your_service_id_here
-EMAILJS_PUBLIC_KEY=your_public_key_here
-EMAILJS_PRIVATE_KEY=your_private_key_here
-EMAILJS_OTP_TEMPLATE_ID=your_template_id_here
+# # EmailJS Configuration (Optional - for production email sending)
+# # Get these from https://www.emailjs.com/
+# EMAILJS_SERVICE_ID=your_service_id_here
+# EMAILJS_PUBLIC_KEY=your_public_key_here
+# EMAILJS_PRIVATE_KEY=your_private_key_here
+# EMAILJS_OTP_TEMPLATE_ID=your_template_id_here
+
+
+PUSHER_APP_ID=2034240
+PUSHER_KEY=e1cbcda6ec63effce99f
+PUSHER_SECRET=325458a613396c082a18
+PUSHER_CLUSTER=mt1
+
+NEXT_PUBLIC_PUSHER_KEY=e1cbcda6ec63effce99f
+NEXT_PUBLIC_PUSHER_CLUSTER=mt1

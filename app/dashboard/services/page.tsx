@@ -11,7 +11,8 @@ import { supabase } from "@/lib/supabase"
 import { Plus, FileText, Edit3, BarChart3, Printer, Upload, MessageCircle, Clock, CheckCircle, XCircle, Download, Search, Calendar, DollarSign, X, Paperclip, AlertCircle, User, MoreVertical, Menu, Send, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import toast from "react-hot-toast"
-
+import { pusherClient } from "@/lib/pusher"
+ 
 interface BusinessService {
   id: string
   service_type: "printing" | "editing" | "analysis" | "other"
@@ -107,7 +108,30 @@ export default function BusinessServicesPage() {
         window.history.replaceState({}, document.title, "/dashboard/services");
       }
     }
-  }, [user]);
+
+    const supabaseChannel = supabase
+      .channel("realtime:public:business_services")
+      .on("postgres_changes", { event: "*", schema: "public", table: "business_services" }, (payload) => {
+        fetchServices();
+      })
+      .subscribe();
+
+    if (selectedService) {
+      const pusherChannel = pusherClient.subscribe(selectedService.id);
+      pusherChannel.bind('new-message', (data: any) => {
+        fetchServices();
+      });
+
+      return () => {
+        supabase.removeChannel(supabaseChannel);
+        pusherClient.unsubscribe(selectedService.id);
+      };
+    }
+
+    return () => {
+      supabase.removeChannel(supabaseChannel);
+    };
+  }, [user, selectedService]);
 
   useEffect(() => {
     scrollToBottom()
@@ -257,6 +281,11 @@ export default function BusinessServicesPage() {
         .eq("id", selectedService.id)
 
       if (error) throw error
+
+      await fetch('/api/pusher', {
+        method: 'POST',
+        body: JSON.stringify({ channel: selectedService.id, message: newMessageObj }),
+      })
 
       setSelectedService({ ...selectedService, messages: updatedMessages })
       setNewMessage("")

@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase"
 import { FileText, Edit3, BarChart3, Printer, MessageCircle, Clock, CheckCircle, XCircle, Download, Search, Calendar, Send, Menu, X, Paperclip, DollarSign, AlertCircle, User, MoreVertical, Phone, Video, ArrowLeft, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import toast from "react-hot-toast"
+import { pusherClient } from "@/lib/pusher"
 
 interface BusinessService {
   id: string
@@ -67,9 +68,15 @@ export default function AdminBusinessServicesPage() {
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
-  useEffect(() => {
+    useEffect(() => {
     fetchServices()
-    const channel = supabase
+
+    const pusherChannel = pusherClient.subscribe(selectedService?.id || '')
+    pusherChannel.bind('new-message', (data: any) => {
+      fetchServices()
+    })
+
+    const supabaseChannel = supabase
       .channel("realtime:public:business_services")
       .on("postgres_changes", { event: "*", schema: "public", table: "business_services" }, (payload) => {
         fetchServices()
@@ -77,9 +84,10 @@ export default function AdminBusinessServicesPage() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(supabaseChannel)
+      pusherClient.unsubscribe(selectedService?.id || '')
     }
-  }, [])
+  }, [selectedService])
 
   useEffect(() => {
     if (selectedService) {
@@ -221,6 +229,11 @@ export default function AdminBusinessServicesPage() {
         .eq("id", selectedService.id)
 
       if (error) throw error
+
+      await fetch('/api/pusher', {
+        method: 'POST',
+        body: JSON.stringify({ channel: selectedService.id, message: newMessageObj }),
+      })
 
       const updatedService = {
         ...selectedService,
