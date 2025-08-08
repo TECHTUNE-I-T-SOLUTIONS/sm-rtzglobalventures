@@ -124,6 +124,7 @@ export default function ProfilePage() {
     if (user) {
       fetchProfile()
       fetchAccountStats()
+      fetchSecurityQuestions()
     }
   }, [user])
 
@@ -195,6 +196,34 @@ export default function ProfilePage() {
       console.error("Error fetching account stats:", error)
     }
   }
+
+  const fetchSecurityQuestions = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("security_questions")
+        .select("question_1, answer_1, question_2, answer_2")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // Ignore error if no questions are found
+        throw error;
+      }
+
+      if (data) {
+        setSecurityQuestions({
+          question1: data.question_1 || "",
+          answer1: data.answer_1 || "",
+          question2: data.question_2 || "",
+          answer2: data.answer_2 || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching security questions:", error);
+      toast.error("Could not fetch security questions.");
+    }
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
