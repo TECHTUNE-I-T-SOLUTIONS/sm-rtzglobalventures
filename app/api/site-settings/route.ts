@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 
 import type { Database } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const supabase = createRouteHandlerClient<Database>({ cookies });
 
