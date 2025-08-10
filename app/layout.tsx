@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 // Function to fetch site settings
 async function getSiteSettings() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/site-settings`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/general-site-settings`, {
       next: { revalidate: 3600 }, // Revalidate every hour
     });
     if (!res.ok) {

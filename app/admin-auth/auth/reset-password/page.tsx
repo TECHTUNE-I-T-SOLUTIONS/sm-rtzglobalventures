@@ -1,22 +1,9 @@
-"use client"
-
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { supabase } from "@/lib/supabase"
-import { Lock, Eye, EyeOff, CheckCircle, Shield } from "lucide-react"
-import toast from "react-hot-toast"
 
 "use client"
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -37,14 +24,6 @@ export default function AdminResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  useEffect(() => {
-    // This useEffect is intentionally left blank.
-    // The original code had a faulty check that prevented the password reset from working.
-    // It was trying to read auth tokens from the URL query string, but Supabase
-    // provides them in the URL hash fragment.
-    // The Supabase client library handles the hash fragment automatically to
-    // establish a session. By removing the old logic, we allow that to happen.
-  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
