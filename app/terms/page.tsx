@@ -111,7 +111,7 @@ export default function TermsOfServicePage() {
             <Card className="bg-card border">
               <CardContent className="p-8">
                 <p className="text-lg leading-relaxed">
-                  Welcome to Sm@rtz Global Enterprise. These Terms of Service ("Terms") govern your use of our website
+                  Welcome to Sm@rtz Global Ventures. These Terms of Service ("Terms") govern your use of our website
                   and services. By using our services, you agree to comply with and be bound by these terms.
                 </p>
               </CardContent>
@@ -165,7 +165,7 @@ export default function TermsOfServicePage() {
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
                   All content on our website, including text, graphics, logos, and software, is the property of Sm@rtz
-                  Global Enterprise or its licensors and is protected by copyright and other intellectual property laws.
+                  Global Ventures or its licensors and is protected by copyright and other intellectual property laws.
                 </p>
                 <p className="text-muted-foreground">
                   You may not reproduce, distribute, or create derivative works from our content without express written
@@ -209,7 +209,7 @@ export default function TermsOfServicePage() {
                 </p>
                 <div className="space-y-2">
                   <p className="text-muted-foreground">
-                    <strong>Sm@rtz Global Enterprise</strong>
+                    <strong>Sm@rtz Global Ventures</strong>
                   </p>
                   <p className="text-muted-foreground">Shop 4 & 5, Behind Faculty of CIS</p>
                   <p className="text-muted-foreground">University of Ilorin PS, Ilorin, Nigeria</p>

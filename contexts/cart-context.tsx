@@ -5,19 +5,31 @@ import { supabase } from "@/lib/supabase"
 import { useAuthStore } from "@/hooks/use-auth"
 import toast from "react-hot-toast"
 
+interface ProductItem {
+  id: string
+  name: string
+  price: number
+  image_url: string | null
+  stock_quantity: number
+}
+
+interface EbookItem {
+  id: string
+  title: string
+  price: number
+  cover_image_url: string | null
+}
+
 interface CartItem {
   id: string
-  product_id: string
+  user_id: string
+  product_id: string | null
+  ebook_id: string | null
   quantity: number
   created_at: string
   updated_at: string
-  products: {
-    id: string
-    name: string
-    price: number
-    image_url: string | null
-    stock_quantity: number
-  }
+  products?: ProductItem // Optional, will be present if product_id is not null
+  ebooks?: EbookItem // Optional, will be present if ebook_id is not null
 }
 
 interface CartContextType {
@@ -25,11 +37,13 @@ interface CartContextType {
   loading: boolean
   totalItems: number
   totalPrice: number
-  addItem: (productId: string, quantity?: number) => Promise<void>
+  addItem: (item: { id: string; name: string; price: number; quantity: number; image: string | null }, type: 'product' | 'ebook') => Promise<void>
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
   refreshCart: () => Promise<void>
+  getFreeEbook: (ebook: any) => Promise<void>
+  removeCartItemsByIds: (itemIds: string[]) => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -51,18 +65,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         .from("cart_items")
         .select(`
           *,
-          products (
-            id,
-            name,
-            price,
-            image_url,
-            stock_quantity
-          )
+          products (id, name, price, image_url, stock_quantity),
+          ebooks (id, title, price, cover_image_url)
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
       if (error) throw error
+
       setItems(data || [])
     } catch (error) {
       console.error("Error fetching cart:", error)
@@ -72,19 +82,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const addItem = async (productId: string, quantity = 1) => {
+  const addItem = async (item: { id: string; name: string; price: number; quantity: number; image: string | null }, type: 'product' | 'ebook') => {
     if (!user) {
       toast.error("Please log in to add items to cart")
       return
     }
 
     try {
-      // Check if item already exists in cart
-      const existingItem = items.find(item => item.product_id === productId)
+      const existingItem = items.find(i => 
+        (type === 'product' && i.product_id === item.id) || 
+        (type === 'ebook' && i.ebook_id === item.id)
+      )
 
       if (existingItem) {
-        // Update quantity
-        const newQuantity = existingItem.quantity + quantity
+        const newQuantity = existingItem.quantity + item.quantity
         const { error } = await supabase
           .from("cart_items")
           .update({ quantity: newQuantity })
@@ -93,20 +104,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (error) throw error
         toast.success("Cart updated!")
       } else {
-        // Add new item
         const { error } = await supabase
           .from("cart_items")
           .insert({
             user_id: user.id,
-            product_id: productId,
-            quantity
+            product_id: type === 'product' ? item.id : null,
+            ebook_id: type === 'ebook' ? item.id : null,
+            quantity: item.quantity
           })
 
         if (error) throw error
         toast.success("Added to cart!")
       }
 
-      // Refresh cart
       await fetchCart()
     } catch (error: any) {
       console.error("Error adding to cart:", error)
@@ -172,9 +182,55 @@ export function CartProvider({ children }: { children: ReactNode }) {
     await fetchCart()
   }
 
-  // Calculate totals
-  const totalItems = items.reduce((total, item) => total + item.quantity, 0)
-  const totalPrice = items.reduce((total, item) => total + (item.products.price * item.quantity), 0)
+  const removeCartItemsByIds = async (itemIds: string[]) => {
+    if (!user || itemIds.length === 0) return
+
+    try {
+      const { error } = await supabase
+        .from("cart_items")
+        .delete()
+        .in("id", itemIds)
+
+      if (error) throw error
+      toast.success("Selected items removed from cart")
+      await fetchCart()
+    } catch (error: any) {
+      console.error("Error removing cart items:", error)
+      toast.error(error.message || "Failed to remove items from cart")
+    }
+  }
+
+  const getFreeEbook = async (ebook: any) => {
+    if (!user) {
+      toast.error("Please log in to acquire free ebooks.")
+      return
+    }
+    try {
+      const { error } = await supabase.from("acquired_ebooks").insert({
+        user_id: user.id,
+        ebook_id: ebook.id,
+      })
+      if (error && error.code !== '23505') { // 23505 is unique violation, meaning ebook already acquired
+        throw error
+      }
+      window.open(ebook.file_url, "_blank")
+      toast.success(`You can now download ${ebook.title}`)
+    } catch (error: any) {
+      console.error("Error acquiring free ebook:", error)
+      toast.error(error.message || "Failed to acquire free ebook.")
+    }
+  }
+
+  const totalItems = items
+    .filter(item => item)
+    .reduce((total, item) => total + item.quantity, 0);
+
+  const totalPrice = items
+    .filter(item => item && (item.products || item.ebooks))
+    .reduce((total, item) => {
+      const price = item.products?.price || item.ebooks?.price || 0;
+      return total + (price * item.quantity);
+    }, 0);
 
   useEffect(() => {
     fetchCart()
@@ -191,7 +247,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
-        refreshCart
+        refreshCart,
+        getFreeEbook,
+        removeCartItemsByIds
       }}
     >
       {children}
@@ -205,4 +263,4 @@ export function useCart() {
     throw new Error("useCart must be used within a CartProvider")
   }
   return context
-} 
+}

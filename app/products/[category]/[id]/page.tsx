@@ -134,7 +134,16 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (product) {
-      addItem(product.id, quantity)
+      addItem(
+        { 
+          id: product.id, 
+          name: product.name, 
+          price: product.price, 
+          quantity: quantity, 
+          image: product.image_url 
+        }, 
+        'product'
+      )
     }
   }
 

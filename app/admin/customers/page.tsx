@@ -20,6 +20,7 @@ interface Customer {
   role: string
   created_at: string
   last_sign_in_at: string | null
+  avatar_url: string | null // Added
   orders_count?: number
   total_spent?: number
 }
@@ -55,42 +56,66 @@ export default function AdminCustomersPage() {
         .from("profiles")
         .select("*")
         .eq("role", "user")
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false });
 
-      if (profilesError) throw profilesError
+      if (profilesError) throw profilesError;
+
+      const customerIds = profiles.map(p => p.id);
+
+      // Fetch last_sign_in_at from the new API route
+      const lastSignInResponse = await fetch('/api/admin/users/last-sign-in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userIds: customerIds }),
+      });
+
+      if (!lastSignInResponse.ok) {
+        throw new Error('Failed to fetch last sign-in dates from API');
+      }
+      const lastSignInData = await lastSignInResponse.json();
+      const lastSignInMap = new Map(lastSignInData.map((user: { id: string; last_sign_in_at: string | null }) => [user.id, user.last_sign_in_at]));
 
       const customersWithStats = await Promise.all(
         profiles.map(async (profile) => {
+          const lastSignInAt = lastSignInMap.get(profile.id) || null;
+          const avatarUrl = profile.avatar_url || null; // Use profile.avatar_url directly
+
           const { data: orders, error: ordersError } = await supabase
             .from("orders")
             .select("total_amount")
-            .eq("user_id", profile.id)
+            .eq("user_id", profile.id);
 
           if (ordersError) {
-            console.error("Error fetching orders for customer:", ordersError)
+            console.error("Error fetching orders for customer:", ordersError);
             return {
               ...profile,
+              last_sign_in_at: lastSignInAt,
+              avatar_url: avatarUrl,
               orders_count: 0,
               total_spent: 0,
-            }
+            };
           }
 
           return {
             ...profile,
+            last_sign_in_at: lastSignInAt,
+            avatar_url: avatarUrl,
             orders_count: orders.length,
             total_spent: orders.reduce((sum, order) => sum + order.total_amount, 0),
-          }
+          };
         }),
-      )
+      );
 
-      setCustomers(customersWithStats)
+      setCustomers(customersWithStats);
     } catch (error) {
-      console.error("Error fetching customers:", error)
-      toast.error("Failed to fetch customers")
+      console.error("Error fetching customers:", error);
+      toast.error("Failed to fetch customers");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const filterCustomers = () => {
     let filtered = [...customers]
@@ -222,12 +247,16 @@ export default function AdminCustomersPage() {
                 className="border rounded-lg p-3 sm:p-4 bg-background flex flex-col justify-between hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-primary font-semibold text-sm sm:text-base">
-                      {customer.full_name
-                        ? customer.full_name.charAt(0).toUpperCase()
-                        : customer.email.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {customer.avatar_url ? (
+                      <img src={customer.avatar_url} alt={customer.full_name || customer.email} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-primary font-semibold text-sm sm:text-base">
+                        {customer.full_name
+                          ? customer.full_name.charAt(0).toUpperCase()
+                          : customer.email.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm sm:text-base truncate">{customer.full_name || "No name set"}</p>

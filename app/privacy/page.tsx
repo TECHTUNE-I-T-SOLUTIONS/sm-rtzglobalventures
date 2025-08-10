@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage() {
             <Card className="bg-card border">
               <CardContent className="p-8">
                 <p className="text-lg leading-relaxed">
-                  At Sm@rtz Global Enterprise, we are committed to protecting your privacy and ensuring the security of
+                  At Sm@rtz Global Ventures, we are committed to protecting your privacy and ensuring the security of
                   your personal information. This Privacy Policy describes how we collect, use, disclose, and safeguard
                   your information when you visit our website or use our services.
                 </p>

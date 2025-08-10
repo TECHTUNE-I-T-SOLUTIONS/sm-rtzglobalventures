@@ -8,13 +8,34 @@ import { supabase } from "@/lib/supabase"
 import { Users, Package, ShoppingCart, DollarSign, TrendingUp, TrendingDown, BarChart3 } from "lucide-react"
 import { motion } from "framer-motion"
 
+interface Ebook {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string | null;
+  wishlistCount: number;
+}
+
+interface WishlistItem {
+  product_id: string;
+  products: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    image_url: string | null;
+  }[];
+}
+
 interface DashboardStats {
   totalCustomers: number
   totalProducts: number
   totalOrders: number
   totalRevenue: number
   recentOrders: any[]
-  topProducts: any[]
+  topProducts: any[] // Consider defining a more specific type for products if possible
+  topEbooks: Ebook[]
 }
 
 export default function AdminDashboard() {
@@ -24,6 +45,7 @@ export default function AdminDashboard() {
     totalOrders: 0,
     totalRevenue: 0,
     recentOrders: [],
+    topEbooks: [], // Initialize topEbooks here
     topProducts: [],
   })
   const [loading, setLoading] = useState(true)
@@ -61,13 +83,53 @@ export default function AdminDashboard() {
         .order("created_at", { ascending: false })
         .limit(5)
 
+      // Fetch top wishlisted ebooks
+      const { data: topEbooksData, error: topEbooksError } = await supabase
+        .from('wishlist_items')
+        .select(`
+          product_id,
+          products (
+            id,
+            name,
+            description,
+            price,
+            image_url
+          )
+        `)
+        .eq('products.category', 'books'); // Filter for ebooks
+
+      if (topEbooksError) {
+        console.error("Error fetching top ebooks:", topEbooksError);
+      }
+
+      // Explicitly cast topEbooksData to WishlistItem[]
+      const typedTopEbooksData: WishlistItem[] | null = topEbooksData;
+
+      // Process the data to count wishlists per ebook
+      const ebookWishlistCounts = typedTopEbooksData?.reduce((acc: Record<string, Ebook>, item: WishlistItem) => {
+        const product = item.products && item.products.length > 0 ? item.products[0] : null;
+        const ebookId = product?.id;
+
+        if (ebookId && product) {
+          acc[ebookId] = acc[ebookId] || { ...product, wishlistCount: 0 };
+          acc[ebookId].wishlistCount++;
+        }
+        return acc;
+      }, {} as Record<string, Ebook>);
+
+      // Convert to array and sort by wishlist count, limit to top 5
+      const sortedTopEbooks = Object.values(ebookWishlistCounts || {})
+        .sort((a: any, b: any) => b.wishlistCount - a.wishlistCount)
+        .slice(0, 5);
+
       setStats({
         totalCustomers: customersCount || 0,
         totalProducts: productsCount || 0,
         totalOrders: orders?.length || 0,
         totalRevenue,
         recentOrders: recentOrders || [],
-        topProducts: [], // TODO: Implement top products query
+        topProducts: [], // This remains for general products
+        topEbooks: sortedTopEbooks,
       })
     } catch (error) {
       console.error("Error fetching dashboard stats:", error)
@@ -237,6 +299,39 @@ export default function AdminDashboard() {
                 <p className="font-semibold">View Analytics</p>
                 <p className="text-sm text-muted-foreground">Sales reports</p>
               </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Ebooks Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-card border">
+          <CardHeader>
+            <CardTitle>Top Wishlisted Ebooks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {stats.topEbooks.length > 0 ? (
+                stats.topEbooks.map((ebook) => (
+                  <div key={ebook.id} className="flex items-center justify-between p-4 border rounded-lg bg-background">
+                    <div className="flex items-center space-x-4">
+                      {ebook.image_url && (
+                        <img src={ebook.image_url} alt={ebook.name} className="w-12 h-12 object-cover rounded-md" />
+                      )}
+                      <div>
+                        <p className="font-semibold">{ebook.name}</p>
+                        <p className="text-sm text-muted-foreground">Wishlisted: {ebook.wishlistCount}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">₦{ebook.price.toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground">No top ebooks to display yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -93,7 +93,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 <Button
                   size="sm"
                   className="flex-1"
-                  onClick={() => addItem(product.id)}
+                  onClick={() => addItem({ id: product.id, name: product.name, price: product.price, quantity: 1, image: product.image_url }, 'product')}
                   disabled={product.stock_quantity === 0}
                   variant={isInCart ? "secondary" : "default"}
                 >

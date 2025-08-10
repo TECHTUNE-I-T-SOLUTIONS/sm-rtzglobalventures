@@ -42,20 +42,20 @@ export function CartItems() {
             {/* Product Image */}
             <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0">
               <Image
-                src={
-                  item.products.image_url ||
-                  `/placeholder.svg?height=80&width=80&query=${item.products.name || "/placeholder.svg"}`
-                }
-                alt={item.products.name}
+                src={item.products?.image_url || item.ebooks?.cover_image_url || "/placeholder.svg"}
+                alt={item.products?.name || item.ebooks?.title || "Item"}
                 fill
                 className="object-cover"
               />
             </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base truncate">{item.products?.name || item.ebooks?.title}</h3>
+            </div>
 
             {/* Product Details */}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base truncate">{item.products.name}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">₦{item.products.price.toLocaleString()}</p>
+              <h3 className="font-semibold text-sm sm:text-base truncate">{item.products?.name || item.ebooks?.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">₦{(item.products?.price || item.ebooks?.price || 0).toLocaleString()}</p>
             </div>
 
             {/* Quantity Controls */}
@@ -83,7 +83,7 @@ export function CartItems() {
             {/* Price and Remove */}
             <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4">
               <div className="text-right">
-                <p className="font-semibold text-sm sm:text-base">₦{(item.products.price * item.quantity).toLocaleString()}</p>
+                <p className="font-semibold text-sm sm:text-base">₦{((item.products?.price || item.ebooks?.price || 0) * item.quantity).toLocaleString()}</p>
               </div>
               <Button
                 size="sm"

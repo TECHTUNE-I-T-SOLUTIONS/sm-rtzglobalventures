@@ -31,6 +31,7 @@ import {
   Share2,
   MessageCircle,
   Star,
+  Book
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
@@ -55,7 +56,12 @@ interface Order {
       name: string
       image_url: string
       category: string
-    }
+    } | null
+    ebooks: {
+        id: string;
+        title: string;
+        cover_image_url: string;
+    } | null
   }[]
 }
 
@@ -100,6 +106,11 @@ export default function OrdersPage() {
               name,
               image_url,
               category
+            ),
+            ebooks (
+              id,
+              title,
+              cover_image_url
             )
           )
         `)
@@ -125,7 +136,10 @@ export default function OrdersPage() {
         (order) =>
           order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
           order.payment_reference?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          order.order_items.some((item) => item.products.name.toLowerCase().includes(searchQuery.toLowerCase())),
+          order.order_items.some((item) => 
+            (item.products && item.products.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (item.ebooks && item.ebooks.title.toLowerCase().includes(searchQuery.toLowerCase()))
+          ),
       )
     }
 
@@ -529,30 +543,54 @@ export default function OrdersPage() {
                       <div className="space-y-4">
                         {/* Order Items */}
                         <div className="space-y-3">
-                          {order.order_items.slice(0, 3).map((item) => (
-                            <div key={item.id} className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                                {item.products.image_url ? (
-                                  <img
-                                    src={item.products.image_url || "/placeholder.svg"}
-                                    alt={item.products.name}
-                                    className="w-full h-full object-cover"
-                                  />
+                          {order.order_items.slice(0, 3).map((item) => {
+                            const displayItem = item.products ? 
+                              { name: item.products.name, image_url: item.products.image_url, category: item.products.category, isEbook: false } : 
+                              item.ebooks ? 
+                              { name: item.ebooks.title, image_url: item.ebooks.cover_image_url, category: 'E-book', isEbook: true } : 
+                              null;
+
+                            return (
+                              <div key={item.id} className="flex items-center gap-4">
+                                {displayItem ? (
+                                  <>
+                                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                                      {displayItem.image_url ? (
+                                        <img
+                                          src={displayItem.image_url || "/placeholder.svg"}
+                                          alt={displayItem.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <Package className="h-6 w-6 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-medium">{displayItem.name}</p>
+                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <span>Qty: {item.quantity} × ₦{item.price.toLocaleString()}</span>
+                                        <Badge variant="secondary" className="text-xs">
+                                          {displayItem.category}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </>
                                 ) : (
-                                  <Package className="h-6 w-6 text-muted-foreground" />
+                                  <>
+                                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                                      <Package className="h-6 w-6 text-muted-foreground" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-medium text-muted-foreground italic">Product not available</p>
+                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <span>Qty: {item.quantity} × ₦{item.price.toLocaleString()}</span>
+                                      </div>
+                                    </div>
+                                  </>
                                 )}
                               </div>
-                              <div className="flex-1">
-                                <p className="font-medium">{item.products.name}</p>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <span>Qty: {item.quantity} × ₦{item.price.toLocaleString()}</span>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {item.products.category}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                           {order.order_items.length > 3 && (
                             <p className="text-sm text-muted-foreground">+{order.order_items.length - 3} more items</p>
                           )}
@@ -696,3 +734,4 @@ export default function OrdersPage() {
     </div>
   )
 }
+

@@ -1,84 +1,101 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPaystackPayment } from '@/lib/paystack'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { searchParams } = new URL(request.url);
+  const reference = searchParams.get('reference');
+  
+  if (!reference) {
+    return NextResponse.redirect(new URL('/checkout/failed?error=missing_reference', request.url));
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const reference = searchParams.get('reference')
-    const trxref = searchParams.get('trxref')
+    const paymentData = await verifyPaystackPayment(reference);
 
-    if (!reference || !trxref) {
-      return NextResponse.json(
-        { error: 'Missing reference or trxref' },
-        { status: 400 }
-      )
+    if (paymentData.status !== 'success') {
+      // Payment failed or was abandoned
+      return NextResponse.redirect(new URL(`/checkout/failed?reference=${reference}`, request.url));
     }
 
-    // Verify the payment with Paystack
-    const paymentData = await verifyPaystackPayment(reference)
+    // --- PAYMENT IS VERIFIED AND SUCCESSFUL --- 
 
-    if (paymentData.status === 'success') {
-      // Update order status
-      const { error: orderError } = await supabase
+    let hasEbooks = false;
+    let hasProducts = false;
+    let acquiredEbookIds: string[] = [];
+    let userId: string | null = null;
+
+    // Process the order, grant access, and clear the cart
+    try {
+      const { data: order, error: fetchOrderError } = await supabaseAdmin
         .from('orders')
-        .update({ 
-          payment_status: 'paid',
-          status: 'processing'
-        })
+        .select('user_id, order_items(product_id, ebook_id)')
         .eq('payment_reference', reference)
+        .single();
 
-      if (orderError) {
-        console.error('Error updating order:', orderError)
+      if (fetchOrderError) throw fetchOrderError;
+
+      userId = order.user_id;
+
+      if (order.order_items && order.order_items.length > 0) {
+        hasEbooks = order.order_items.some(item => !!item.ebook_id);
+        hasProducts = order.order_items.some(item => !!item.product_id);
+        
+        if (hasEbooks) {
+          acquiredEbookIds = order.order_items.filter(item => !!item.ebook_id).map(item => item.ebook_id!);
+          const acquiredEbooks = acquiredEbookIds.map(id => ({ user_id: order.user_id, ebook_id: id }));
+          await supabaseAdmin.from('acquired_ebooks').upsert(acquiredEbooks, { onConflict: 'user_id, ebook_id' });
+        }
       }
 
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: paymentData.metadata?.user_id,
-          order_id: paymentData.metadata?.order_id,
-          amount: paymentData.amount / 100, // Convert from kobo to naira
-          currency: 'NGN',
-          payment_provider: 'paystack',
-          payment_reference: reference,
-          status: 'success',
-          metadata: paymentData
-        })
-
-      if (transactionError) {
-        console.error('Error creating transaction:', transactionError)
+      // Clear the entire cart for the user
+      if (userId) {
+        await supabaseAdmin.from('cart_items').delete().eq('user_id', userId);
       }
 
-      // Redirect to success page
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/success?reference=${reference}`
-      )
+    } catch (error) {
+      console.error('Error during post-payment processing (ebook access/cart clear):', error);
+      // Don't block the user for this, but log it.
+    }
+
+    // Update order and transaction tables
+    await supabaseAdmin.from('orders').update({ payment_status: 'paid', status: 'processing' }).eq('payment_reference', reference);
+    await supabaseAdmin.from('transactions').insert({
+      user_id: paymentData.metadata?.user_id,
+      order_id: paymentData.metadata?.order_id,
+      amount: paymentData.amount / 100,
+      currency: 'NGN',
+      payment_provider: 'paystack',
+      payment_reference: reference,
+      status: 'success',
+      metadata: paymentData
+    });
+
+    // --- CONDITIONAL REDIRECT --- 
+    let successUrl;
+    if (hasEbooks && hasProducts) {
+      successUrl = new URL('/checkout/mixed-success', request.url);
+      successUrl.searchParams.set('ebookIds', acquiredEbookIds.join(','));
+    } else if (hasEbooks) {
+      successUrl = new URL('/checkout/ebook-success', request.url);
+      successUrl.searchParams.set('ebookIds', acquiredEbookIds.join(','));
     } else {
-      // Payment failed
-      const { error: orderError } = await supabase
-        .from('orders')
-        .update({ 
-          payment_status: 'failed'
-        })
-        .eq('payment_reference', reference)
-
-      if (orderError) {
-        console.error('Error updating order:', orderError)
-      }
-
-      // Redirect to failure page
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/failed?reference=${reference}`
-      )
+      successUrl = new URL('/checkout/success', request.url);
     }
+    successUrl.searchParams.set('reference', reference);
+
+    return NextResponse.redirect(successUrl);
 
   } catch (error: any) {
-    console.error('Paystack callback error:', error)
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/failed?error=${encodeURIComponent(error.message)}`
-    )
+    console.error('Critical error in Paystack callback:', error);
+    const errorMessage = error.message || 'An unknown error occurred';
+    return NextResponse.redirect(new URL(`/checkout/failed?error=${encodeURIComponent(errorMessage)}`, request.url));
   }
 }

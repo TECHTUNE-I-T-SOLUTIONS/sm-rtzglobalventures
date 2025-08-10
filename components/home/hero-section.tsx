@@ -52,7 +52,7 @@ export function HeroSection() {
             <h1 className="text-3xl md:text-7xl sm:text-5xl text-center font-bold mb-6">
               <span className="text-primary">Sm@rtz</span> <span className="text-foreground">Global</span>
               <br />
-              <span className="text-2xl md:text-4xl text-muted-foreground">Enterprise</span>
+              <span className="text-2xl md:text-4xl text-muted-foreground">Ventures</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">Your One-Stop Digital Solutions Provider</p>
           </motion.div>

@@ -39,7 +39,11 @@ type OrderItem = {
   products: {
     name: string
     image_url: string
-  }
+  } | null
+  ebooks: {
+    title: string
+    cover_image_url: string
+  } | null
 }
 
 // This defines the structure of the shipping address, whether it's a JSON object or a string.
@@ -108,6 +112,10 @@ export default function OrderDetailsPage() {
               products (
                 name,
                 image_url
+              ),
+              ebooks (
+                title,
+                cover_image_url
               )
             ),
             profiles (
@@ -132,9 +140,8 @@ export default function OrderDetailsPage() {
             order_items: Array.isArray(data.order_items)
               ? data.order_items.map((item: any) => ({
                   ...item,
-                  products: Array.isArray(item.products)
-                    ? item.products[0]
-                    : item.products,
+                  products: item.products,
+                  ebooks: item.ebooks,
                 }))
               : [],
             profiles: Array.isArray(data.profiles)
@@ -301,25 +308,47 @@ export default function OrderDetailsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {order.order_items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <Image
-                            src={item.products.image_url || "/placeholder.svg"}
-                            alt={item.products.name}
-                            width={64}
-                            height={64}
-                            className="rounded-md object-cover bg-muted"
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">{item.products.name}</TableCell>
-                        <TableCell className="text-right">₦{item.price.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-medium">
-                          ₦{(item.price * item.quantity).toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {order.order_items.map((item) => {
+                      // Check if the item has product details (for physical products)
+                      const isProduct = !!item.products;
+                      // Check if the item has ebook details (for ebooks)
+                      const isEbook = !!item.ebooks;
+
+                      let name = "N/A";
+                      let imageUrl = "/placeholder.svg";
+
+                      if (isProduct && item.products) {
+                        name = item.products.name;
+                        imageUrl = item.products.image_url || "/placeholder.svg";
+                      } else if (isEbook && item.ebooks) {
+                        name = item.ebooks.title;
+                        imageUrl = item.ebooks.cover_image_url || "/placeholder.svg";
+                      }
+
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <Image
+                              src={imageUrl || "/placeholder.svg"}
+                              alt={name}
+                              width={64}
+                              height={64}
+                              className="rounded-md object-cover bg-muted"
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{name}</TableCell>
+                          <TableCell className="text-right">
+                            ₦{item.price.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {item.quantity}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            ₦{(item.price * item.quantity).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -336,8 +365,12 @@ export default function OrderDetailsPage() {
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <p className="font-medium">{order.profiles.full_name}</p>
-                  <p className="text-muted-foreground">{order.profiles.email}</p>
-                  <p className="text-muted-foreground">{order.profiles.phone || "No phone provided"}</p>
+                  <p className="text-muted-foreground">
+                    {order.profiles.email}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {order.profiles.phone || "No phone provided"}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -364,25 +397,40 @@ export default function OrderDetailsPage() {
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Status</span>
-                  <Badge variant={getStatusVariant(order.payment_status)} className="capitalize">
+                  <Badge
+                    variant={getStatusVariant(order.payment_status)}
+                    className="capitalize"
+                  >
                     {order.payment_status}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
-                  <span className="font-medium capitalize">{order.payment_method || "N/A"}</span>
+                  <span className="font-medium capitalize">
+                    {order.payment_method || "N/A"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Payment Provider</span>
-                  <span className="font-medium capitalize">{order.payment_provider || "N/A"}</span>
+                  <span className="text-muted-foreground">
+                    Payment Provider
+                  </span>
+                  <span className="font-medium capitalize">
+                    {order.payment_provider || "N/A"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Payment Reference</span>
+                  <span className="text-muted-foreground">
+                    Payment Reference
+                  </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs">{order.payment_reference || "N/A"}</span>
+                    <span className="font-mono text-xs">
+                      {order.payment_reference || "N/A"}
+                    </span>
                     <ClipboardCopy
                       className="h-4 w-4 cursor-pointer hover:text-primary"
-                      onClick={() => handleCopyToClipboard(order.payment_reference || "")}
+                      onClick={() =>
+                        handleCopyToClipboard(order.payment_reference || "")
+                      }
                     />
                   </div>
                 </div>
