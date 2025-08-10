@@ -145,6 +145,23 @@ export default function ProfilePage() {
       const { data, error } = await supabase.from("profiles").select("*").eq("id", user?.id).single()
 
       if (error) throw error
+      
+      console.log("Fetched profile data:", data); // Add this line
+      
+      if (data && data.avatar_url) {
+        // Check if the avatar_url is already a full URL (e.g., from Google, Facebook, etc.)
+        if (data.avatar_url.startsWith('http://') || data.avatar_url.startsWith('https://')) {
+          // It's already a full URL, use it directly
+          console.log("Avatar URL is already a full URL:", data.avatar_url);
+        } else {
+          // It's likely a path to a Supabase storage file, get the public URL
+          console.log("Avatar URL from DB (path):", data.avatar_url);
+          const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(data.avatar_url)
+          console.log("Public URL data:", publicUrlData);
+          data.avatar_url = publicUrlData.publicUrl
+        }
+      }
+
       setProfile(data)
     } catch (error) {
       console.error("Error fetching profile:", error)
