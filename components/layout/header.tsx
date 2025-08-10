@@ -32,10 +32,14 @@ import {
   Star,
   MessageSquare,
   Rss,
-  AlertCircle
+  AlertCircle,
+  Book
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
 import toast from "react-hot-toast"
+
+import { motion, AnimatePresence } from "framer-motion"
+import { useRef } from "react"
+import { LogoutModal } from "@/components/modals/logout-modal"
 
 export function Header() {
   const { user, signOut } = useAuth()
@@ -46,12 +50,38 @@ export function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const sidebarRef = useRef<HTMLDivElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const [showConfirmLogoutModal, setShowConfirmLogoutModal] = useState(false)
 
   useEffect(() => {
     if (user) {
       fetchNotifications()
     }
   }, [user])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node) &&
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isMenuOpen])
 
   const fetchNotifications = async () => {
     if (!user) return
@@ -81,7 +111,11 @@ export function Header() {
     }
   }
 
-  const handleSignOut = async () => {
+  const requestSignOut = () => {
+    setShowConfirmLogoutModal(true)
+  }
+
+  const confirmLogout = async () => {
     try {
       await signOut()
       toast.success("Signed out successfully")
@@ -100,6 +134,7 @@ export function Header() {
         { label: "All Products", href: "/products" },
         { label: "Computers & Tech", href: "/products/computers" },
         { label: "Books & Academic", href: "/products/books" },
+        { label: "E-books", href: "/products/ebooks" },
       ],
     },
     {
@@ -127,6 +162,7 @@ export function Header() {
   const userMenuItems = [
     { label: "Dashboard", href: "/dashboard", icon: User },
     { label: "Orders", href: "/dashboard/orders", icon: Package },
+    { label: "My E-books", href: "/dashboard/ebooks", icon: Book },
     { label: "Wishlist", href: "/dashboard/wishlist", icon: Heart },
     { label: "Profile", href: "/dashboard/profile", icon: Settings },
     { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
@@ -135,7 +171,7 @@ export function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-[40] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Top Bar */}
       <div className="border-b bg-primary/5">
         <div className="container mx-auto px-4">
@@ -162,7 +198,7 @@ export function Header() {
               <Badge variant="outline" className="text-xs animate-pulse">
                 in beta
               </Badge>
-              <span className="hidden sm:inline">Welcome to Sm@rtz Global Enterprise</span>
+              <span className="hidden sm:inline">Welcome to Sm@rtz Global Ventures</span>
             </div>
           </div>
         </div>
@@ -185,7 +221,7 @@ export function Header() {
                 <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                   Sm@rtz Global
                 </span>
-                <div className="text-xs text-muted-foreground -mt-1">Enterprise</div>
+                <div className="text-xs text-muted-foreground -mt-1">Ventures</div>
               </div>
             </Link>
 
@@ -292,7 +328,7 @@ export function Header() {
                         </nav>
                         <div className="border-t">
                           <button
-                            onClick={handleSignOut}
+                            onClick={requestSignOut}
                             className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 w-full text-left"
                           >
                             <LogOut className="h-4 w-4" />
@@ -320,6 +356,7 @@ export function Header() {
                 size="icon"
                 className="ml-auto p-1 sm:p-2 lg:hidden"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                ref={menuButtonRef}
               >
                 {isMenuOpen ? (
                   <X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -340,7 +377,9 @@ export function Header() {
                 <Link
                   href={item.href}
                   className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                    pathname === item.href ? "text-primary" : "text-muted-foreground"
+                    pathname === item.href 
+                      ? "text-primary" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
                   <item.icon className="h-4 w-4" />
@@ -401,7 +440,7 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-[9998] lg:hidden"
+              className="fixed inset-0 bg-black/5 z-[999] lg:hidden"
               onClick={() => setIsMenuOpen(false)}
             />
             
@@ -412,6 +451,7 @@ export function Header() {
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="fixed left-0 top-0 h-screen w-80 max-w-[85vw] bg-white dark:bg-black border-r shadow-xl z-[9999] lg:hidden"
+              ref={sidebarRef}
             >
               <div className="flex flex-col h-full">
                 {/* Sidebar Header */}
@@ -506,7 +546,7 @@ export function Header() {
                         ))}
                         <button
                           onClick={() => {
-                            handleSignOut()
+                            requestSignOut()
                             setIsMenuOpen(false)
                           }}
                           className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors w-full text-left"
@@ -523,6 +563,15 @@ export function Header() {
           </>
         )}
       </AnimatePresence>
+      <LogoutModal
+        isOpen={showConfirmLogoutModal}
+        onClose={() => setShowConfirmLogoutModal(false)}
+        onConfirm={confirmLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to log out of your account?"
+        confirmText="Log Out"
+        variant="destructive"
+      />
     </header>
   )
 }

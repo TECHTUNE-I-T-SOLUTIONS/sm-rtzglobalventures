@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { AlertTriangle, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-interface ConfirmationModalProps {
+export interface ConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
@@ -61,7 +61,7 @@ export function ConfirmationModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
           >
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-md bg-white dark:bg-black">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-yellow-500" />

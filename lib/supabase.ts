@@ -15,6 +15,11 @@ export type Database = {
           role: "user" | "admin"
           created_at: string
           updated_at: string
+          email_notifications_enabled: boolean | null
+          order_notifications_enabled: boolean | null
+          payment_notifications_enabled: boolean | null
+          dispute_notifications_enabled: boolean | null
+          marketing_emails_enabled: boolean | null
         }
         Insert: {
           id: string
@@ -24,6 +29,11 @@ export type Database = {
           role?: "user" | "admin"
           created_at?: string
           updated_at?: string
+          email_notifications_enabled?: boolean | null
+          order_notifications_enabled?: boolean | null
+          payment_notifications_enabled?: boolean | null
+          dispute_notifications_enabled?: boolean | null
+          marketing_emails_enabled?: boolean | null
         }
         Update: {
           id?: string
@@ -33,6 +43,11 @@ export type Database = {
           role?: "user" | "admin"
           created_at?: string
           updated_at?: string
+          email_notifications_enabled?: boolean | null
+          order_notifications_enabled?: boolean | null
+          payment_notifications_enabled?: boolean | null
+          dispute_notifications_enabled?: boolean | null
+          marketing_emails_enabled?: boolean | null
         }
       }
       products: {

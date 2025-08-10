@@ -140,9 +140,12 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+              <div className="flex items-center justify-between text-sm">
+                <Link href="/auth/forgot-password" className="text-primary hover:underline">
                   Forgot password?
+                </Link>
+                <Link href="/auth/resend-confirmation" className="text-primary hover:underline">
+                  Resend confirmation
                 </Link>
               </div>
 

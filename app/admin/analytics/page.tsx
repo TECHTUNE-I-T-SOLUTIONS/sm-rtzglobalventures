@@ -35,6 +35,12 @@ interface AnalyticsData {
     sales: number
     revenue: number
   }>
+  topEbooks: Array<{
+    id: string
+    title: string
+    sales: number
+  }>
+  totalWishlistItems: number
   recentOrders: Array<{
     id: string
     customer_name: string
@@ -61,6 +67,8 @@ export default function AdminAnalyticsPage() {
     averageOrderValue: 0,
     topProducts: [],
     recentOrders: [],
+    topEbooks: [], // Initialize topEbooks
+    totalWishlistItems: 0, // Initialize totalWishlistItems
     monthlyRevenue: [],
   })
   const [loading, setLoading] = useState(true)
@@ -116,6 +124,26 @@ export default function AdminAnalyticsPage() {
 
       if (orderItemsError) throw orderItemsError
 
+      // Fetch ebook order items
+      const { data: ebookOrderItems, error: ebookOrderItemsError } = await supabase
+        .from("order_items")
+        .select(`
+          ebook_id,
+          quantity,
+          ebooks(title)
+        `)
+        .not("ebook_id", "is", null) // Only select order items that are ebooks
+        .gte("created_at", startDate.toISOString());
+
+      if (ebookOrderItemsError) throw ebookOrderItemsError;
+
+      // Fetch total wishlist items
+      const { count: totalWishlistItems, error: wishlistError } = await supabase
+        .from("wishlist_items")
+        .select("*", { count: 'exact', head: true });
+
+      if (wishlistError) throw wishlistError;
+
       const totalRevenue = orders?.reduce((sum, order) => sum + order.total_amount, 0) || 0
       const totalOrders = orders?.length || 0
       const totalCustomers = customers?.length || 0
@@ -143,6 +171,25 @@ export default function AdminAnalyticsPage() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5)
 
+      const ebookSales = new Map();
+      ebookOrderItems?.forEach(item => {
+        const ebookTitle = (item.ebooks as any)?.title || "Unknown Ebook";
+        const existing = ebookSales.get(ebookTitle) || { sales: 0, id: item.ebook_id };
+        ebookSales.set(ebookTitle, {
+          id: existing.id,
+          sales: existing.sales + item.quantity,
+        });
+      });
+
+      const topEbooks = Array.from(ebookSales.entries())
+        .map(([title, data]: [string, any]) => ({
+          id: data.id,
+          title,
+          sales: data.sales,
+        }))
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 5); // Top 5 ebooks
+
       const monthlyRevenueMap = new Map<string, { revenue: number, orders: number }>()
       orders?.forEach(order => {
         const month = new Date(order.created_at).toLocaleString('default', { month: 'short' })
@@ -160,17 +207,15 @@ export default function AdminAnalyticsPage() {
       }))
 
       const recentOrders = orders?.slice(0, 5).map(order => ({
-        id: order.id,
-        customer_name: Array.isArray(order.profiles) && order.profiles.length > 0
-          ? order.profiles[0].full_name
-          : "Unknown",
-        amount: order.total_amount,
+ id: order.id,
+ customer_name: (order.profiles as unknown as { full_name: string } | null)?.full_name || "Unknown",
+ amount: order.total_amount,
         status: order.status,
         created_at: order.created_at,
       })) || []
 
       setAnalytics({
- totalRevenue: totalRevenue,
+        totalRevenue: totalRevenue,
         totalOrders,
         totalCustomers,
         totalProducts,
@@ -179,7 +224,9 @@ export default function AdminAnalyticsPage() {
         customerGrowth: 15.2,
         averageOrderValue,
         topProducts,
- recentOrders: recentOrders,
+        topEbooks,
+        totalWishlistItems: totalWishlistItems || 0,
+        recentOrders: recentOrders,
         monthlyRevenue,
       })
     } catch (error) {

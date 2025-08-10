@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -20,20 +20,13 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Handle the auth callback
-    const handleAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (error) {
-        toast.error("Invalid or expired reset link")
-        router.push("/auth/forgot-password")
-      }
-    }
-
-    handleAuthCallback()
-  }, [router])
+    // This useEffect is intentionally left blank.
+    // The original code had a faulty check that prevented the password reset from working.
+    // The Supabase client library handles the hash fragment automatically to
+    // establish a session. By removing the old logic, we allow that to happen.
+  }, [])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()

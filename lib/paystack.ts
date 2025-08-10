@@ -47,26 +47,49 @@ export async function initializePaystackPayment(data: {
 }
 
 export async function verifyPaystackPayment(reference: string) {
-  try {
-    const response = await fetch(`${PAYSTACK_CONFIG.baseUrl}/transaction/verify/${reference}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${PAYSTACK_CONFIG.secretKey}`,
-        'Content-Type': 'application/json',
-      },
-    })
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1500; // 1.5 seconds
 
-    const result = await response.json()
-    
-    if (!result.status) {
-      throw new Error(result.message || 'Failed to verify payment')
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    try {
+      const response = await fetch(`${PAYSTACK_CONFIG.baseUrl}/transaction/verify/${reference}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${PAYSTACK_CONFIG.secretKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        // Only retry on network-level errors or 5xx server errors from Paystack
+        if (response.status < 500) {
+            throw new Error(`Paystack API responded with non-retriable status ${response.status}: ${errorBody}`);
+        }
+        throw new Error(`Paystack API responded with ${response.status}: ${errorBody}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.status) {
+        throw new Error(result.message || 'Failed to verify payment');
+      }
+
+      // Success, return data
+      return result.data;
+
+    } catch (error: any) {
+      console.error(`Paystack verification error (Attempt ${i + 1}/${MAX_RETRIES}):`, error.message);
+      if (i === MAX_RETRIES - 1) {
+        // If this was the last retry, re-throw the error to be caught by the callback handler
+        throw error;
+      }
+      // Wait before the next retry
+      await new Promise(res => setTimeout(res, RETRY_DELAY));
     }
-
-    return result.data
-  } catch (error) {
-    console.error('Paystack verification error:', error)
-    throw error
   }
+  // This part should be unreachable, but is required for TypeScript to not complain
+  throw new Error('Failed to verify payment after multiple retries.');
 }
 
 export async function createPaystackTransfer(data: {
@@ -107,4 +130,4 @@ export async function createPaystackTransfer(data: {
 // Generate unique reference
 export function generateReference(): string {
   return `SMARTZ_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-} 
+}

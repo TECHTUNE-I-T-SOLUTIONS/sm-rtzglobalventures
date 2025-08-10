@@ -6,6 +6,7 @@ import { StatsSection } from "@/components/home/stats-section"
 import { SubsidiariesSection } from "@/components/home/subsidiaries-section"
 import { TestimonialsSection } from "@/components/home/testimonials-section"
 import { NewsletterSection } from "@/components/home/newsletter-section"
+import { DailyQuoteDisplay } from "@/components/daily-quote-display"
 
 export default function HomePage() {
   return (
@@ -20,6 +21,7 @@ export default function HomePage() {
         <NewsletterSection />
       </main>
       <Footer />
+      <DailyQuoteDisplay />
     </div>
   )
 }

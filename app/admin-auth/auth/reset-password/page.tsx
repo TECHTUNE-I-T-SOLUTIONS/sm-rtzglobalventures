@@ -12,9 +12,22 @@ import { supabase } from "@/lib/supabase"
 import { Lock, Eye, EyeOff, CheckCircle, Shield } from "lucide-react"
 import toast from "react-hot-toast"
 
+"use client"
+
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { supabase } from "@/lib/supabase"
+import { Lock, Eye, EyeOff, CheckCircle, Shield } from "lucide-react"
+import toast from "react-hot-toast"
+
 export default function AdminResetPasswordPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: "",
@@ -25,15 +38,13 @@ export default function AdminResetPasswordPage() {
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
-    // Check if we have the necessary tokens
-    const accessToken = searchParams.get("access_token")
-    const refreshToken = searchParams.get("refresh_token")
-
-    if (!accessToken || !refreshToken) {
-      toast.error("Invalid reset link")
-      router.push("/admin-auth/auth/login")
-    }
-  }, [searchParams, router])
+    // This useEffect is intentionally left blank.
+    // The original code had a faulty check that prevented the password reset from working.
+    // It was trying to read auth tokens from the URL query string, but Supabase
+    // provides them in the URL hash fragment.
+    // The Supabase client library handles the hash fragment automatically to
+    // establish a session. By removing the old logic, we allow that to happen.
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -187,3 +198,4 @@ export default function AdminResetPasswordPage() {
     </div>
   )
 }
+

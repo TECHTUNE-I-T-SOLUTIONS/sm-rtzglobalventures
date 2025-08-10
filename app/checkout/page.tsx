@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button" 
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuthStore } from "@/hooks/use-auth"
@@ -29,7 +29,7 @@ interface CheckoutForm {
 
 export default function CheckoutPage() {
   const { user, loading: authLoading } = useAuthStore() // Use auth loading state
-  const { items, totalPrice, clearCart } = useCart()
+  const { items, totalPrice, clearCart, removeCartItemsByIds } = useCart()
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false) // Renamed for clarity
   const [formData, setFormData] = useState<CheckoutForm>({
@@ -41,6 +41,10 @@ export default function CheckoutPage() {
     state: "",
     paymentMethod: "paystack", // Default to paystack
   })
+
+  const isAllEbooksFree = items.every(item => item.ebook_id && item.ebooks?.price === 0)
+  const deliveryFee = isAllEbooksFree ? 0 : 1000 // ₦1,000 delivery fee only for physical products
+  const finalTotal = totalPrice + deliveryFee
 
   useEffect(() => {
     if (authLoading) {
@@ -94,6 +98,9 @@ export default function CheckoutPage() {
   }
 
   const validateForm = () => {
+    // If all items are free ebooks, no need for shipping info
+    if (isAllEbooksFree) return true
+
     const required = ["fullName", "email", "phone", "address", "city", "state"]
     for (const field of required) {
       if (!formData[field as keyof Omit<CheckoutForm, 'paymentMethod'>]) {
@@ -122,7 +129,57 @@ export default function CheckoutPage() {
 
     setIsProcessing(true)
     try {
-      // Create order in database
+      // Handle free ebooks checkout
+      if (isAllEbooksFree) {
+        const { data: order, error: orderError } = await supabase.from("orders").insert([
+          {
+            user_id: user?.id,
+            total_amount: 0,
+            status: "processing",
+            payment_status: "paid",
+            shipping_address: {}, // Empty shipping address for digital goods
+            payment_method: "free_ebook",
+          },
+        ]).select().single()
+
+        if (orderError) throw orderError
+
+        // Insert order items, linking to ebooks
+        const orderItems = items.map((item) => ({
+          order_id: order.id,
+          ebook_id: item.ebook_id, // Only ebook_id for free ebooks
+          quantity: item.quantity,
+          price: 0, // Price is 0 for free ebooks
+        }))
+
+        const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
+        if (itemsError) throw itemsError
+
+        // Record acquired ebooks for the user
+        const acquiredEbooks = items.map((item) => ({
+          user_id: user?.id,
+          ebook_id: item.ebook_id,
+          acquired_date: new Date().toISOString(),
+        }))
+
+        const { error: acquiredError } = await supabase.from("acquired_ebooks").insert(acquiredEbooks)
+        // If there's an error and it's NOT a unique constraint violation (23505), then throw it
+        if (acquiredError && acquiredError.code !== '23505') {
+          throw acquiredError
+        }
+
+        // Update order status to 'delivered' after successful acquisition
+        const { error: updateOrderError } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id)
+        if (updateOrderError) throw updateOrderError
+
+        const itemIds = items.map(item => item.id)
+        await removeCartItemsByIds(itemIds)
+        const ebookIds = items.filter(item => item.ebook_id).map(item => item.ebook_id).join(",")
+        router.push(`/checkout/ebook-success?ebookIds=${ebookIds}`)
+        return
+      }
+
+      // Proceed with regular checkout for physical products or paid ebooks
       const orderData = {
         user_id: user?.id,
         total_amount: finalTotal,
@@ -144,8 +201,9 @@ export default function CheckoutPage() {
       const orderItems = items.map((item) => ({
         order_id: order.id,
         product_id: item.product_id,
+        ebook_id: item.ebook_id,
         quantity: item.quantity,
-        price: item.products.price,
+        price: item.products?.price || item.ebooks?.price || 0,
       }))
 
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
@@ -167,8 +225,9 @@ export default function CheckoutPage() {
             order_id: order.id,
             items: items.map(item => ({
               product_id: item.product_id,
+              ebook_id: item.ebook_id,
               quantity: item.quantity,
-              price: item.products.price
+              price: item.products?.price || item.ebooks?.price || 0,
             }))
           }
         }),
@@ -189,9 +248,6 @@ export default function CheckoutPage() {
       setIsProcessing(false)
     }
   }
-
-  const deliveryFee = 1000 // ₦1,000 delivery fee
-  const finalTotal = totalPrice + deliveryFee
 
   if (authLoading) {
     return (
@@ -225,142 +281,146 @@ export default function CheckoutPage() {
             {/* Checkout Form */}
             <div className="lg:col-span-2 space-y-6">
               {/* Shipping Information */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <Card className="bg-card border">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Shipping Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {!isAllEbooksFree && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                  <Card className="bg-card border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        Shipping Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Full Name *</label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              name="fullName"
+                              value={formData.fullName}
+                              onChange={handleInputChange}
+                              placeholder="Enter your full name"
+                              className="pl-10 bg-background"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Email Address *</label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              name="email"
+                              type="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              placeholder="Enter your email"
+                              className="pl-10 bg-background"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
                       <div>
-                        <label className="block text-sm font-medium mb-2">Full Name *</label>
+                        <label className="block text-sm font-medium mb-2">Phone Number *</label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            name="fullName"
-                            value={formData.fullName}
+                            name="phone"
+                            value={formData.phone}
                             onChange={handleInputChange}
-                            placeholder="Enter your full name"
+                            placeholder="+234 XXX XXX XXXX"
                             className="pl-10 bg-background"
                             required
                           />
                         </div>
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium mb-2">Email Address *</label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <label className="block text-sm font-medium mb-2">Address *</label>
+                        <Textarea
+                          name="address"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          placeholder="Enter your full address"
+                          rows={3}
+                          className="bg-background resize-none"
+                          required
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">City *</label>
                           <Input
-                            name="email"
-                            type="email"
-                            value={formData.email}
+                            name="city"
+                            value={formData.city}
                             onChange={handleInputChange}
-                            placeholder="Enter your email"
-                            className="pl-10 bg-background"
+                            placeholder="Enter city"
+                            className="bg-background"
                             required
                           />
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">State *</label>
+                          <select
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-black"
+                            required
+                          > 
+                            <option value="">Select State</option>
+                            <option value="Kwara">Kwara</option>
+                            <option value="Lagos">Lagos</option>
+                            <option value="Abuja">Abuja</option>
+                            <option value="Oyo">Oyo</option>
+                            <option value="Osun">Osun</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Phone Number *</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          placeholder="+234 XXX XXX XXXX"
-                          className="pl-10 bg-background"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Address *</label>
-                      <Textarea
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        placeholder="Enter your full address"
-                        rows={3}
-                        className="bg-background resize-none"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">City *</label>
-                        <Input
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          placeholder="Enter city"
-                          className="bg-background"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">State *</label>
-                        <select
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-black"
-                          required
-                        >
-                          <option value="">Select State</option>
-                          <option value="Kwara">Kwara</option>
-                          <option value="Lagos">Lagos</option>
-                          <option value="Abuja">Abuja</option>
-                          <option value="Oyo">Oyo</option>
-                          <option value="Osun">Osun</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {/* Payment Method */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Card className="bg-card border">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CreditCard className="h-5 w-5" />
-                      Payment Method
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 border rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-6 w-6 text-primary" />
-                        <div>
-                          <p className="font-semibold">Pay with Paystack</p>
-                          <p className="text-sm text-muted-foreground">
-                            Securely pay with Card, Bank Transfer, USSD, or OPay.
-                          </p>
+              {!isAllEbooksFree && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Card className="bg-card border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5" />
+                        Payment Method
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="p-4 border rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-3">
+                          <CreditCard className="h-6 w-6 text-primary" />
+                          <div>
+                            <p className="font-semibold">Pay with Paystack</p>
+                            <p className="text-sm text-muted-foreground">
+                              Securely pay with Card, Bank Transfer, USSD, or OPay.
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Lock className="h-4 w-4" />
-                      Your payment information is secure and encrypted.
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Lock className="h-4 w-4" />
+                        Your payment information is secure and encrypted.
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </div>
 
             {/* Order Summary */}
@@ -382,25 +442,41 @@ export default function CheckoutPage() {
                     {items.map((item) => (
                       <div key={item.id} className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                          {item.products.image_url ? (
-                            <Image
-                              src={item.products.image_url || "/placeholder.svg"}
-                              alt={item.products.name}
-                              width={48}
-                              height={48}
-                              className="w-12 h-12 object-cover rounded-lg"
-                            />
+                          {item.product_id ? (
+                            item.products?.image_url ? (
+                              <Image
+                                src={item.products.image_url || "/placeholder.svg"}
+                                alt={item.products.name}
+                                width={48}
+                                height={48}
+                                className="w-12 h-12 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Package className="h-6 w-6 text-muted-foreground" />
+                            )
+                          ) : item.ebook_id ? (
+                            item.ebooks?.cover_image_url ? (
+                              <Image
+                                src={item.ebooks.cover_image_url || "/placeholder.svg"}
+                                alt={item.ebooks.title}
+                                width={48}
+                                height={48}
+                                className="w-12 h-12 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Package className="h-6 w-6 text-muted-foreground" />
+                            )
                           ) : (
                             <Package className="h-6 w-6 text-muted-foreground" />
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium text-sm">{item.products.name}</p>
+                          <p className="font-medium text-sm">{item.products?.name || item.ebooks?.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Qty: {item.quantity} × ₦{item.products.price.toLocaleString()}
+                            Qty: {item.quantity} × ₦{(item.products?.price || item.ebooks?.price || 0).toLocaleString()}
                           </p>
                         </div>
-                        <p className="font-semibold">₦{(item.products.price * item.quantity).toLocaleString()}</p>
+                        <p className="font-semibold">₦{((item.products?.price || item.ebooks?.price || 0) * item.quantity).toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
@@ -410,10 +486,12 @@ export default function CheckoutPage() {
                       <span>Subtotal</span>
                       <span>₦{totalPrice.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Delivery Fee</span>
-                      <span>₦{deliveryFee.toLocaleString()}</span>
-                    </div>
+                    {!isAllEbooksFree && (
+                      <div className="flex justify-between">
+                        <span>Delivery Fee</span>
+                        <span>₦{deliveryFee.toLocaleString()}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between font-bold text-lg border-t pt-2">
                       <span>Total</span>
                       <span className="text-primary">₦{finalTotal.toLocaleString()}</span>
@@ -429,7 +507,7 @@ export default function CheckoutPage() {
                     ) : (
                       <>
                         <Lock className="h-4 w-4 mr-2" />
-                        Complete Order - ₦{finalTotal.toLocaleString()}
+                        {isAllEbooksFree ? "Get E-books" : `Complete Order - ₦${finalTotal.toLocaleString()}`}
                       </>
                     )}
                   </Button>

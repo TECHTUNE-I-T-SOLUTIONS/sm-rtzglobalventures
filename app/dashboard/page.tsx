@@ -53,6 +53,13 @@ export default function DashboardPage() {
       color: "bg-blue-500",
     },
     {
+      title: "My E-books",
+      description: "Access your acquired ebooks",
+      icon: BookOpen,
+      href: "/dashboard/ebooks",
+      color: "bg-indigo-500",
+    },
+    {
       title: "Wishlist",
       description: "Your saved items",
       icon: Heart,

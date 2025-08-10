@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Eye } from "lucide-react"
 import { supabase } from "@/lib/supabase"
-import { useCartStore } from "@/hooks/use-cart"
+import { useCart } from "@/contexts/cart-context"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -23,7 +23,7 @@ interface Product {
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const { addItem } = useCartStore()
+  const { addItem } = useCart()
 
   useEffect(() => {
     fetchFeaturedProducts()
@@ -135,7 +135,7 @@ export function FeaturedProducts() {
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={() => addItem(product.id)}
+                      onClick={() => addItem({ id: product.id, name: product.name, price: product.price, quantity: 1, image: product.image_url }, 'product')}
                       disabled={product.stock_quantity === 0}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />

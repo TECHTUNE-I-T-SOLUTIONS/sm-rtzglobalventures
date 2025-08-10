@@ -1,7 +1,9 @@
 "use client"
 
 import type React from "react"
+import { useEffect } from "react"
 import { usePathname } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 import { Providers } from "./providers"
 import { Toaster } from "react-hot-toast"
 import { CookieConsent } from "@/components/ui/cookie-consent"
@@ -17,11 +19,38 @@ export function ClientLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user } = useAuthStore()
+  const { user, setUser, setLoading } = useAuthStore()
   const { anchorPoint, show, setShow } = useContextMenu()
   const pathname = usePathname()
 
   const isAdminPage = pathname.startsWith("/admin")
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setUser(session.user)
+        } else {
+          setUser(null)
+        }
+        setLoading(false)
+      }
+    )
+
+    // Fetch initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUser(session.user)
+      } else {
+        setUser(null)
+      }
+      setLoading(false)
+    })
+
+    return () => {
+      data.subscription?.unsubscribe()
+    }
+  }, [setUser, setLoading])
 
   const getMenuItems = (): MenuItem[] => {
     const baseItems: MenuItem[] = [
@@ -63,6 +92,7 @@ export function ClientLayout({
             },
           }}
         />
+        <div id="modal-root" /> {/* Added this line */}
         <CookieConsent />
         <CustomerSupportChat />
         <ConditionalFeedbackButton />

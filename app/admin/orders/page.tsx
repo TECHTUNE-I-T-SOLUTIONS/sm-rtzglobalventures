@@ -34,7 +34,10 @@ interface Order {
     products: {
       name: string
       category: string
-    }
+    } | null
+    ebooks: {
+      title: string
+    } | null
   }>
 }
 
@@ -74,7 +77,8 @@ export default function AdminOrdersPage() {
           profiles!orders_user_id_fkey(full_name, email, phone),
           order_items(
             *,
-            products(name, category)
+            products(name, category),
+            ebooks(title)
           )
         `,
         )
@@ -297,7 +301,7 @@ export default function AdminOrdersPage() {
                   <div className="text-sm">
                     <p className="text-muted-foreground">Items: {order.order_items.length}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {order.order_items.map((i) => i.products.name).join(", ")}
+                      {order.order_items.map((i) => i.products?.name || i.ebooks?.title || 'Unknown Item').join(", ")}
                     </p>
                   </div>
                 </CardContent>
@@ -375,9 +379,9 @@ export default function AdminOrdersPage() {
                   <CardHeader>
                     <CardTitle className="text-base sm:text-lg">Order Information</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm break-words">
+                  <CardContent className="space-y-3 text-sm break-words break-all">
                     <InfoRow label="Order ID" value={selectedOrder.id} copyable />
-                    <InfoRow label="Payment Reference" 
+                    <InfoRow label="Payment Reference"
                     value={selectedOrder.payment_reference} copyable />
                     <InfoRow label="Total Amount" value={`₦${selectedOrder.total_amount.toLocaleString()}`} />
                     <InfoRow label="Order Date" value={new Date(selectedOrder.created_at).toLocaleString()} />
@@ -411,8 +415,9 @@ export default function AdminOrdersPage() {
                         className="flex items-center justify-between p-3 border rounded-lg bg-background"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm sm:text-base truncate">{item.products.name}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Category: {item.products.category}</p>
+                          <p className="font-semibold text-sm sm:text-base truncate">{item.products?.name || item.ebooks?.title || 'Unknown Item'}</p>
+                          {item.products && <p className="text-xs sm:text-sm text-muted-foreground">Category: {item.products.category}</p>}
+                          {item.ebooks && <p className="text-xs sm:text-sm text-muted-foreground">Type: E-book</p>}
                         </div>
                         <div className="text-right ml-3">
                           <p className="font-semibold text-sm sm:text-base">₦{item.price.toLocaleString()}</p>

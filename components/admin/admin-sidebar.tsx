@@ -36,6 +36,11 @@ const sidebarItems = [
     icon: Package,
   },
   {
+    title: "E-books",
+    href: "/admin/ebooks",
+    icon: FileText,
+  },
+  {
     title: "Orders",
     href: "/admin/orders",
     icon: ShoppingCart,
@@ -167,6 +172,7 @@ export function AdminSidebar({ isOpen, onToggle, isMobile }: AdminSidebarProps) 
                     : "text-muted-foreground hover:text-foreground",
                   (!isOpen && !isMobile) && "justify-center px-2"
                 )}
+                onClick={onToggle}
               >
                 <item.icon className={cn(
                   "h-4 w-4 transition-all duration-200",

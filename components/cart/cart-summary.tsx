@@ -10,9 +10,9 @@ import Link from "next/link"
 export function CartSummary() {
   const { totalPrice, totalItems, loading } = useCart()
   const subtotal = totalPrice
-  const shipping = subtotal > 10000 ? 0 : 2000
+  const shipping = subtotal > 10000 ? 2000 : 0
   const total = subtotal + shipping
-
+  
   if (loading) {
     return (
       <Card className="bg-card border sticky top-4">

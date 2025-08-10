@@ -56,6 +56,12 @@ interface ReportData {
     pendingFeedback: number
     resolvedFeedback: number
   }
+  ebookReport: {
+    totalEbooks: number;
+  };
+  wishlistReport: {
+    totalWishlistItems: number;
+  };
 }
 
 export default function AdminReportsPage() {
@@ -88,6 +94,12 @@ export default function AdminReportsPage() {
       averageRating: 0,
       pendingFeedback: 0,
       resolvedFeedback: 0,
+    },
+    ebookReport: {
+ totalEbooks: 0,
+    },
+    wishlistReport: {
+ totalWishlistItems: 0,
     },
   })
   const [loading, setLoading] = useState(true)
@@ -151,6 +163,21 @@ export default function AdminReportsPage() {
         .gte("created_at", new Date(Date.now() - parseInt(dateRange) * 24 * 60 * 60 * 1000).toISOString())
 
       if (feedbackError) throw feedbackError
+
+      // Fetch total ebooks count
+      const { count: ebooksCount, error: ebooksError } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("category", "books");
+
+      if (ebooksError) throw ebooksError;
+
+      // Fetch total wishlist items count
+      const { count: wishlistItemsCount, error: wishlistItemsError } = await supabase
+        .from("wishlist_items")
+        .select("*", { count: "exact", head: true });
+
+      if (wishlistItemsError) throw wishlistItemsError;
 
       // Calculate sales report
       const totalRevenue = orders?.reduce((sum, order) => sum + order.total_amount, 0) || 0
@@ -233,6 +260,12 @@ export default function AdminReportsPage() {
           pendingFeedback,
           resolvedFeedback,
         },
+        ebookReport: {
+          totalEbooks: ebooksCount || 0,
+        },
+        wishlistReport: {
+          totalWishlistItems: wishlistItemsCount || 0,
+        },
       })
     } catch (error) {
       console.error("Error fetching reports:", error)
@@ -292,6 +325,18 @@ export default function AdminReportsPage() {
           ["Resolved Feedback", reports.feedbackReport.resolvedFeedback.toString()]
         ]
         break
+      case "ebook":
+        csvContent = [
+          ["Ebook Report"],
+          ["Total Ebooks", reports.ebookReport.totalEbooks.toString()],
+        ]
+        break
+      case "wishlist":
+        csvContent = [
+          ["Wishlist Report"],
+          ["Total Wishlist Items", reports.wishlistReport.totalWishlistItems.toString()],
+        ]
+        break
       default:
         csvContent = [
           ["Comprehensive Report"],
@@ -314,7 +359,13 @@ export default function AdminReportsPage() {
           [],
           ["Feedback Report"],
           ["Total Feedback", reports.feedbackReport.totalFeedback.toString()],
-          ["Average Rating", reports.feedbackReport.averageRating.toFixed(1)]
+          ["Average Rating", reports.feedbackReport.averageRating.toFixed(1)],
+          [],
+          ["Ebook Report"],
+          ["Total Ebooks", reports.ebookReport.totalEbooks.toString()],
+          [],
+          ["Wishlist Report"],
+          ["Total Wishlist Items", reports.wishlistReport.totalWishlistItems.toString()],
         ]
     }
 
@@ -381,6 +432,8 @@ export default function AdminReportsPage() {
             <option value="inventory">Inventory Report</option>
             <option value="financial">Financial Report</option>
             <option value="feedback">Feedback Report</option>
+            <option value="ebook">Ebook Report</option>
+            <option value="wishlist">Wishlist Report</option>
           </select>
           <select
             value={dateRange}
@@ -470,6 +523,32 @@ export default function AdminReportsPage() {
                 </p>
               </div>
               <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* New Ebook Report Card */}
+        <Card className="bg-card border">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Ebooks</p>
+                <p className="text-lg sm:text-2xl font-bold">{reports.ebookReport.totalEbooks}</p>
+              </div>
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* New Wishlist Report Card */}
+        <Card className="bg-card border">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Wishlist Items</p>
+                <p className="text-lg sm:text-2xl font-bold">{reports.wishlistReport.totalWishlistItems}</p>
+              </div>
+              <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 text-pink-500" />
             </div>
           </CardContent>
         </Card>
@@ -632,6 +711,44 @@ export default function AdminReportsPage() {
               <div>
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Resolved</p>
                 <p className="text-lg sm:text-xl font-bold text-green-600">{reports.feedbackReport.resolvedFeedback}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* New Ebook Report Card */}
+        <Card className="bg-card border">
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">Ebook Report</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => exportReport("ebook")} className="text-xs">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              Export
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Ebooks</p>
+                <p className="text-lg sm:text-xl font-bold">{reports.ebookReport.totalEbooks}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* New Wishlist Report Card */}
+        <Card className="bg-card border">
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">Wishlist Report</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => exportReport("wishlist")} className="text-xs">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              Export
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Wishlist Items</p>
+                <p className="text-lg sm:text-xl font-bold">{reports.wishlistReport.totalWishlistItems}</p>
               </div>
             </div>
           </CardContent>
