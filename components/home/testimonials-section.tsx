@@ -30,7 +30,7 @@ const testimonials = [
   {
     name: "Aisha Mohammed",
     role: "Business Administration",
-    content: "Fast, reliable, and affordable. Sm@rtz Global Enterprise is truly a one-stop solution for students.",
+    content: "Fast, reliable, and affordable. Sm@rtz Global Ventures is truly a one-stop solution for students.",
     rating: 5,
     avatar: "/placeholder.svg?height=60&width=60",
   },

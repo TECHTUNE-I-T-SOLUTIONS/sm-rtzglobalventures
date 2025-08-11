@@ -28,7 +28,7 @@ export async function GET() {
       console.error('Error fetching user:', userError);
       // If no user, return default notification settings
       return NextResponse.json({
-        site_name: siteSettings?.site_name || 'Sm@rtz Global Enterprise',
+        site_name: siteSettings?.site_name || 'Sm@rtz Global Ventures',
         site_description: siteSettings?.site_description || 'Leading provider of computer accessories, books, and business services.',
         site_keywords: siteSettings?.site_keywords || 'computer accessories, bookstore, business services',
         site_email: siteSettings?.site_email || '',
@@ -54,7 +54,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      site_name: siteSettings?.site_name || 'Sm@rtz Global Enterprise',
+      site_name: siteSettings?.site_name || 'Sm@rtz Global Ventures',
       site_description: siteSettings?.site_description || 'Leading provider of computer accessories, books, and business services.',
       site_keywords: siteSettings?.site_keywords || 'computer accessories, bookstore, business services',
       site_email: siteSettings?.site_email || '',

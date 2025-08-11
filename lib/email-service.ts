@@ -60,7 +60,7 @@ export function generateOrderConfirmationEmail(orderData: any) {
           <p><strong>Date:</strong> ${new Date(orderData.created_at).toLocaleDateString()}</p>
         </div>
         <p>We'll send you updates as your order progresses.</p>
-        <p>Best regards,<br>Sm@rtz Global Enterprise Team</p>
+        <p>Best regards,<br>Sm@rtz Global Ventures Team</p>
       </div>
     `,
   }

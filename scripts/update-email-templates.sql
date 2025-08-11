@@ -103,14 +103,14 @@ Subject: Sm@rtz Global Admin Verification - {{ .Token }}
     <div class="container">
         <div class="header">
             <div class="logo">Sm@rtz Global</div>
-            <div class="subtitle">Enterprise Admin Verification</div>
+            <div class="subtitle">Ventures Admin Verification</div>
         </div>
         
         <div class="content">
             <h2 style="color: #1e293b; margin-bottom: 20px;">Admin Account Verification</h2>
             
             <p class="instructions">
-                Thank you for registering as an administrator for Sm@rtz Global Enterprise. 
+                Thank you for registering as an administrator for Sm@rtz Global Ventures. 
                 To complete your admin account setup, please use the verification code below:
             </p>
             
@@ -141,7 +141,7 @@ Subject: Sm@rtz Global Admin Verification - {{ .Token }}
         </div>
         
         <div class="footer">
-            <p>© {{ now.Year }} Sm@rtz Global Enterprise. All rights reserved.</p>
+            <p>© {{ now.Year }} Sm@rtz Global Ventures. All rights reserved.</p>
             <p>This is an automated message. Please do not reply to this email.</p>
         </div>
     </div>
@@ -228,14 +228,14 @@ Subject: Sm@rtz Global Admin Password Reset
     <div class="container">
         <div class="header">
             <div class="logo">Sm@rtz Global</div>
-            <div class="subtitle">Enterprise Admin Portal</div>
+            <div class="subtitle">Ventures Admin Portal</div>
         </div>
         
         <div class="content">
             <h2 style="color: #1e293b; margin-bottom: 20px;">Admin Password Reset</h2>
             
             <p class="instructions">
-                You have requested to reset your admin password for Sm@rtz Global Enterprise. 
+                You have requested to reset your admin password for Sm@rtz Global Ventures. 
                 Click the button below to proceed with the password reset:
             </p>
             
@@ -265,7 +265,7 @@ Subject: Sm@rtz Global Admin Password Reset
         </div>
         
         <div class="footer">
-            <p>© 2024 Sm@rtz Global Enterprise. All rights reserved.</p>
+            <p>© 2024 Sm@rtz Global Ventures. All rights reserved.</p>
             <p>This is an automated message. Please do not reply to this email.</p>
         </div>
     </div>

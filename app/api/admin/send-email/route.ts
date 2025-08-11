@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         to_name: fullName,
         passcode: verificationCode,
         time: formattedTime,
-        company_name: 'Sm@rtz Global Enterprise',
+        company_name: 'Sm@rtz Global Ventures',
         website_link: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       }
     }

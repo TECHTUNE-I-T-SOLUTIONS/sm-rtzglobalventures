@@ -125,7 +125,7 @@ function AdminConfirm() {
               </CardTitle>
               <CardDescription>
                 {status === 'loading' && 'Please wait while we confirm your admin account'}
-                {status === 'success' && 'Sm@rtz Global Enterprise'}
+                {status === 'success' && 'Sm@rtz Global Ventures'}
                 {status === 'error' && 'Please try again or contact support'}
               </CardDescription>
             </div>

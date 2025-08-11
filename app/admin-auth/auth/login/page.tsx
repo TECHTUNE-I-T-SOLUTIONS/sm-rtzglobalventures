@@ -138,7 +138,7 @@ export default function AdminLoginPage() {
             </div>
             <div>
               <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-              <p className="text-muted-foreground">Sm@rtz Global Enterprise</p>
+              <p className="text-muted-foreground">Sm@rtz Global Ventures</p>
             </div>
           </CardHeader>
           <CardContent>

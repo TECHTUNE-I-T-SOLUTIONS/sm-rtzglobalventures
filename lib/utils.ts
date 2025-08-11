@@ -28,3 +28,27 @@ export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength) + "..."
 }
+
+// Derive absolute base URL for links in both server and client contexts
+export function getBaseUrl(): string {
+  // Prefer explicit envs
+  const envUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL
+
+  if (envUrl) {
+    // Ensure protocol
+    if (/^https?:\/\//i.test(envUrl)) return envUrl.replace(/\/$/, '')
+    return `https://${envUrl.replace(/\/$/, '')}`
+  }
+
+  // Browser fallback
+  if (typeof window !== 'undefined' && window.location) {
+    return `${window.location.protocol}//${window.location.host}`
+  }
+
+  // Local dev default
+  return 'http://localhost:3000'
+}

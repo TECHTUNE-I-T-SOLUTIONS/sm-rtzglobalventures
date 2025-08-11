@@ -56,7 +56,7 @@ const timeline = [
   {
     year: "2016",
     title: "Foundation",
-    description: "Sm@rtz Global Enterprise was founded with a vision to serve the University of Ilorin community",
+    description: "Sm@rtz Global Ventures was founded with a vision to serve the University of Ilorin community",
   },
   {
     year: "2016",
@@ -101,7 +101,7 @@ export default function AboutPage() {
               Empowering Students Through <span className="text-primary">Digital Solutions</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Since our inception, Sm@rtz Global Enterprise has been dedicated to providing comprehensive digital
+              Since our inception, Sm@rtz Global Ventures has been dedicated to providing comprehensive digital
               solutions to the University of Ilorin community and beyond.
             </p>
           </motion.div>
@@ -207,7 +207,7 @@ export default function AboutPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl font-bold mb-4">Leadership</h2>
-            <p className="text-muted-foreground">Meet the visionary behind Sm@rtz Global Enterprise</p>
+            <p className="text-muted-foreground">Meet the visionary behind Sm@rtz Global Ventures</p>
           </motion.div>
 
           <div className="max-w-4xl mx-auto">
@@ -229,7 +229,7 @@ export default function AboutPage() {
                     <p className="text-primary font-semibold mb-4">Chief Executive Officer</p>
                     <p className="text-muted-foreground leading-relaxed mb-6">
                       "Our journey began with a simple vision: to make quality digital solutions accessible to everybody
-                      (including students). Today, Sm@rtz Global Enterprise stands as a testament to what's possible when innovation
+                      (including students). Today, Sm@rtz Global Ventures stands as a testament to what's possible when innovation
                       is combined with dedication. We're not just a business; we're a partner in your academic and professional
                       success."
                     </p>
