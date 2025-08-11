@@ -178,7 +178,7 @@ export default function AdminSignupPage() {
               </div>
             </div>
             <CardTitle className="text-2xl">Admin Registration</CardTitle>
-            <CardDescription>Create an admin account for Sm@rtz Global Enterprise</CardDescription>
+            <CardDescription>Create an admin account for Sm@rtz Global Ventures</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleCreateAccount} className="space-y-4">

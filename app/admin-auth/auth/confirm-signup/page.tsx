@@ -55,7 +55,7 @@ export default function AdminConfirmSignupPage() {
             </div>
             <div>
               <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-              <CardDescription>Sm@rtz Global Enterprise</CardDescription>
+              <CardDescription>Sm@rtz Global Ventures</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">

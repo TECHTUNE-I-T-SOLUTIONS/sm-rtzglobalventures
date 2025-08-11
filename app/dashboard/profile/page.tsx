@@ -361,7 +361,7 @@ export default function ProfilePage() {
       if (navigator.share) {
         await navigator.share({
           title: `${profile?.full_name || 'User'}'s Profile`,
-          text: `Check out ${profile?.full_name || 'this user'}'s profile on Sm@rtz Global Enterprise`,
+          text: `Check out ${profile?.full_name || 'this user'}'s profile on Sm@rtz Global Ventures`,
           url: profileUrl,
         })
       } else {

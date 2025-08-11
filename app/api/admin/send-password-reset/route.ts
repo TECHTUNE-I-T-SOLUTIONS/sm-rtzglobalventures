@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         to_name: fullName,
         link: resetLink,
         email: email,
-        company_name: 'Sm@rtz Global Enterprise',
+        company_name: 'Sm@rtz Global Ventures',
         website_link: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       }
     }
