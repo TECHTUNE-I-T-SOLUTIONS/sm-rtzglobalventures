@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { broadcastPush } from '@/lib/push-server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,6 +60,17 @@ export async function POST(request: NextRequest) {
       .select()
 
     if (error) throw error
+
+    // broadcast push to subscribers about the new product
+    try {
+      const prod = data[0]
+      const titleMsg = `New product: ${prod.name}`
+      const message = prod.description ? `${prod.description}` : `A new product was added in ${prod.category}`
+      const url = prod.category === 'computers' ? '/products/computers' : '/products/books'
+      await broadcastPush({ title: titleMsg, message, url, imageUrl: prod.image_url, persist: true })
+    } catch (e) {
+      console.warn('failed to broadcast product push', e)
+    }
 
     return NextResponse.json({ product: data[0] })
   } catch (error: any) {

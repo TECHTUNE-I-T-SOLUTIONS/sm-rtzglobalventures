@@ -77,6 +77,8 @@ export default function OrdersPage() {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [disputeModalOpen, setDisputeModalOpen] = useState(false)
   const [selectedOrderForDispute, setSelectedOrderForDispute] = useState<Order | null>(null)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     if (user) {
@@ -87,6 +89,10 @@ export default function OrdersPage() {
   useEffect(() => {
     filterAndSortOrders()
   }, [orders, searchQuery, statusFilter, paymentFilter, sortBy])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter, paymentFilter, sortBy])
 
   const fetchOrders = async () => {
     if (!user) return
@@ -390,6 +396,7 @@ export default function OrdersPage() {
                   <div className="relative w-full sm:w-auto">
                     <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <select
+                      aria-label="Filter orders by status"
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
                       className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none"
@@ -407,6 +414,7 @@ export default function OrdersPage() {
                   <div className="relative w-full sm:w-auto">
                     <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <select
+                      aria-label="Filter orders by payment status"
                       value={paymentFilter}
                       onChange={(e) => setPaymentFilter(e.target.value)}
                       className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none"
@@ -422,6 +430,7 @@ export default function OrdersPage() {
                   <div className="relative w-full sm:w-auto">
                     <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <select
+                      aria-label="Sort orders"
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                       className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none"
@@ -486,6 +495,7 @@ export default function OrdersPage() {
                           {/* Selection Checkbox */}
                           <input
                             type="checkbox"
+                            aria-label={`Select order ${order.id}`}
                             checked={selectedOrders.includes(order.id)}
                             onChange={() => toggleOrderSelection(order.id)}
                             className="w-4 h-4 text-primary bg-background border-gray-300 rounded focus:ring-primary mt-1"

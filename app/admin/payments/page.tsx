@@ -64,6 +64,8 @@ export default function AdminPaymentsPage() {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('')
   const [dateFilter, setDateFilter] = useState('')
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     fetchPayments()
@@ -72,6 +74,10 @@ export default function AdminPaymentsPage() {
   useEffect(() => {
     filterPayments()
   }, [payments, searchQuery, statusFilter, paymentStatusFilter, dateFilter])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter, paymentStatusFilter, dateFilter])
 
   const fetchPayments = async () => {
     setLoading(true)
@@ -202,6 +208,11 @@ export default function AdminPaymentsPage() {
 
     setFilteredPayments(filtered)
   }
+
+  const pageCount = Math.max(1, Math.ceil(filteredPayments.length / perPage))
+  const start = (page - 1) * perPage
+  const end = start + perPage
+  const paginatedPayments = filteredPayments.slice(start, end)
 
   const getStatusVariant = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -335,6 +346,7 @@ export default function AdminPaymentsPage() {
               className="bg-background"
             />
             <select
+              aria-label="Filter by order status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 border rounded-lg bg-white dark:bg-black"
@@ -347,6 +359,7 @@ export default function AdminPaymentsPage() {
               <option value="cancelled">Cancelled</option>
             </select>
             <select
+              aria-label="Filter by payment status"
               value={paymentStatusFilter}
               onChange={(e) => setPaymentStatusFilter(e.target.value)}
               className="px-3 py-2 border rounded-lg bg-white dark:bg-black"
@@ -357,6 +370,7 @@ export default function AdminPaymentsPage() {
               <option value="failed">Failed</option>
             </select>
             <select
+              aria-label="Filter by date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               className="px-3 py-2 border rounded-lg bg-white dark:bg-black"
@@ -371,9 +385,23 @@ export default function AdminPaymentsPage() {
       </Card>
 
       {/* Payments Grid */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">Showing {filteredPayments.length === 0 ? 0 : start + 1}-{Math.min(end, filteredPayments.length)} of {filteredPayments.length}</div>
+        <div className="flex items-center gap-2">
+          <select aria-label="Items per page" value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={30}>30</option>
+            <option value={40}>40</option>
+          </select>
+          <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+          <Button size="sm" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={page === pageCount}>Next</Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
-          {filteredPayments.map((payment) => (
+          {paginatedPayments.map((payment) => (
             <motion.div
               key={payment.id}
               layout

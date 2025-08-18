@@ -43,6 +43,8 @@ export default function AdminNotificationsPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -60,6 +62,11 @@ export default function AdminNotificationsPage() {
   useEffect(() => {
     filterNotifications()
   }, [notifications, searchQuery, typeFilter, statusFilter])
+
+  // reset page when filters/search change
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, typeFilter, statusFilter])
 
   const fetchNotifications = async () => {
     try {
@@ -202,6 +209,7 @@ export default function AdminNotificationsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold">Notifications</h1>
           <div className="flex items-center gap-2">
             <select
+              aria-label="Filter by type"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-3 py-2 text-sm border rounded-lg bg-white dark:bg-black"
@@ -231,6 +239,11 @@ export default function AdminNotificationsPage() {
   }
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
+
+  const pageCount = Math.max(1, Math.ceil(filteredNotifications.length / perPage))
+  const start = (page - 1) * perPage
+  const end = start + perPage
+  const paginatedNotifications = filteredNotifications.slice(start, end)
 
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
@@ -330,6 +343,7 @@ export default function AdminNotificationsPage() {
               />
             </div>
             <select
+              aria-label="Filter by type"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-black"
@@ -341,6 +355,7 @@ export default function AdminNotificationsPage() {
               <option value="error">Error</option>
             </select>
             <select
+              aria-label="Filter by status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-black"
@@ -359,6 +374,27 @@ export default function AdminNotificationsPage() {
           <CardTitle className="text-lg sm:text-xl">Notifications ({filteredNotifications.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredNotifications.length === 0 ? 0 : start + 1}-{Math.min(end, filteredNotifications.length)} of {filteredNotifications.length}
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                aria-label="Items per page"
+                value={perPage}
+                onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }}
+                className="px-2 py-1 border rounded bg-white dark:bg-black text-sm"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+                <option value={40}>40</option>
+              </select>
+              <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+              <Button size="sm" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={page === pageCount}>Next</Button>
+            </div>
+          </div>
+
           {filteredNotifications.length === 0 ? (
             <div className="text-center py-8 sm:py-12">
               <Bell className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground mb-4" />
@@ -371,7 +407,7 @@ export default function AdminNotificationsPage() {
             </div>
           ) : (
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredNotifications.map((notification, index) => (
+              {paginatedNotifications.map((notification, index) => (
                 <motion.div
                   key={notification.id}
                   initial={{ opacity: 0, y: 20 }}

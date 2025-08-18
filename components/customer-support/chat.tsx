@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageCircle, X, Send, Paperclip, Smile, ImageIcon, FileText, Search } from "lucide-react"
+import { MessageCircle, X, Send, Paperclip, Smile, ImageIcon, FileText, Search, Maximize, Minimize, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -12,6 +12,8 @@ import ReactMarkdown from "react-markdown"
 import { GoogleGenerativeAI, type ChatSession, SchemaType } from "@google/generative-ai"
 import { supabase } from "@/lib/supabase"
 import { getBaseUrl, formatPrice } from "@/lib/utils"
+import { ConfirmationModal } from "@/components/ui/confirmation-modal"
+import { useToast } from "@/components/ui/use-toast"
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "")
 
@@ -41,6 +43,11 @@ export function CustomerSupportChat() {
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const [lastQuery, setLastQuery] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<string[]>([])
+  const [isMaximized, setIsMaximized] = useState(false)
+  const STORAGE_KEY = "smrtz_chat_history_v1"
+  const THEME_KEY = "smrtz_chat_theme_v1"
+  const MAX_HISTORY = 200
+  const [isChatDark, setIsChatDark] = useState(false)
 
   // Define the functions that implement your tools
   const toolFunctions = {
@@ -144,7 +151,105 @@ export function CustomerSupportChat() {
     },
   };
 
-  const startChatSession = () => {
+  const loadSavedMessages = (): Message[] | null => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as any[]
+      return parsed.map((m) => ({ ...m, timestamp: new Date(m.timestamp) }))
+    } catch (e) {
+      console.warn('Failed to load saved chat messages', e)
+      return null
+    }
+  }
+
+  const loadSavedTheme = () => {
+    try {
+      const raw = localStorage.getItem(THEME_KEY)
+      return raw === 'dark'
+    } catch (e) {
+      return false
+    }
+  }
+
+  const PENDING_KEY = 'smrtz_chat_pending_v1'
+
+  const addPendingMessage = (payload: any) => {
+    try {
+      const raw = localStorage.getItem(PENDING_KEY)
+      const arr = raw ? JSON.parse(raw) : []
+      arr.push(payload)
+      localStorage.setItem(PENDING_KEY, JSON.stringify(arr))
+      setPendingCount(arr.length)
+    } catch (e) { console.warn('failed to add pending', e) }
+  }
+
+  const [pendingCount, setPendingCount] = useState(0)
+  const [pendingIds, setPendingIds] = useState<string[]>([])
+  const [isRetrying, setIsRetrying] = useState(false)
+  const { toast } = useToast()
+
+  const retryPending = async () => {
+    setIsRetrying(true)
+    try {
+      const raw = localStorage.getItem(PENDING_KEY)
+      if (!raw) { setPendingCount(0); return }
+      const arr = JSON.parse(raw) as any[]
+      const remaining: any[] = []
+      for (const item of arr) {
+        const res = await postWithRetry('/api/customer-support/messages', item, 2)
+        if (!res) {
+          remaining.push(item)
+        } else {
+          // remove from pendingIds
+          if (item.clientMessageId) setPendingIds((p) => p.filter((id) => id !== item.clientMessageId))
+        }
+      }
+      if (remaining.length) localStorage.setItem(PENDING_KEY, JSON.stringify(remaining))
+      else localStorage.removeItem(PENDING_KEY)
+      setPendingCount(remaining.length)
+    } catch (e) {
+      console.warn('retryPending failed', e)
+    } finally {
+      setIsRetrying(false)
+    }
+  }
+  
+  // attempt retry when coming online
+  useEffect(() => {
+    retryPending()
+    const onOnline = () => retryPending()
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const closeChat = () => {
+    try { document.body.style.overflow = '' } catch (e) {}
+    setIsMaximized(false)
+    setIsOpen(false)
+  }
+
+  const toggleOpen = () => {
+    if (isOpen) closeChat()
+    else setIsOpen(true)
+  }
+
+  // session token management (anonymous session stored in localStorage)
+  const SESSION_KEY = 'smrtz_chat_session_token'
+  const getOrCreateSessionToken = () => {
+    try {
+      let t = localStorage.getItem(SESSION_KEY)
+      if (t) return t
+      t = `sess_${Math.random().toString(36).slice(2, 12)}`
+      localStorage.setItem(SESSION_KEY, t)
+      return t
+    } catch (e) {
+      return `sess_${Math.random().toString(36).slice(2, 12)}`
+    }
+  }
+
+  const startChatSession = async () => {
     const baseURL = getBaseUrl()
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash",
@@ -282,14 +387,59 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
       },
     })
     setChat(newChat)
-    setMessages([
-      {
-        id: "1",
-        text: "Hello! I'm Sm@rtz CS, your virtual assistant. How can I help you today? 😊",
-        sender: "bot",
-        timestamp: new Date(),
-      },
-    ])
+  // Load saved conversation if present, otherwise initialize with greeting
+    if (typeof window !== 'undefined') {
+      const saved = loadSavedMessages()
+      const savedTheme = loadSavedTheme()
+      setIsChatDark(!!savedTheme)
+      const sessionToken = getOrCreateSessionToken()
+      // Fetch from server if available
+      fetch(`/api/customer-support/sessions?session_token=${sessionToken}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.messages && data.messages.length) {
+            // map server rows to Message[]
+            const msgs = data.messages.map((m: any, idx: number) => ({ id: m.id?.toString() || `s_${idx}`, text: m.message, sender: m.role === 'user' ? 'user' : 'bot', timestamp: new Date(m.created_at) }))
+            setMessages(msgs)
+          } else if (saved && saved.length > 0) {
+            setMessages(saved)
+          } else {
+            setMessages([
+              {
+                id: "1",
+                text: "Hello! I'm Sm@rtz CS, your virtual assistant. How can I help you today? 😊",
+                sender: "bot",
+                timestamp: new Date(),
+              },
+            ])
+          }
+        })
+        .catch(() => {
+          if (saved && saved.length > 0) setMessages(saved)
+        })
+      // if user is logged in, associate session token to user_id so history follows across devices
+      try {
+        const sessionToken = getOrCreateSessionToken()
+        const user = await supabase.auth.getUser()
+        const userId = (user?.data?.user?.id) || null
+        if (userId) {
+          try {
+            const resp = await fetch('/api/customer-support/associate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_token: sessionToken, user_id: userId }) })
+            const json = await resp.json().catch(() => null)
+            if (json?.canonical_token) {
+              // replace local anonymous token with canonical user token
+              localStorage.setItem(SESSION_KEY, json.canonical_token)
+              // retry pending messages (they will be posted under canonical token)
+              retryPending()
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      } catch (e) {
+        // ignore if auth not available
+      }
+    }
   // Show helpful quick suggestions on open
   setSuggestions(['Browse E-books', 'Browse Computers', 'See new arrivals', 'Contact support'])
   }
@@ -299,10 +449,18 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
       startChatSession()
     } else {
       // Reset chat when closed
-      setChat(null)
-      setMessages([])
+  setChat(null)
+  setMessages([])
+  setIsMaximized(false)
+      // ensure any scroll lock is removed
+      try { document.body.style.overflow = '' } catch (e) {}
     }
   }, [isOpen])
+
+  // ensure overflow is reset on unmount
+  useEffect(() => {
+    return () => { try { document.body.style.overflow = '' } catch (e) {} }
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -311,6 +469,81 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
   useEffect(() => {
     scrollToBottom()
   }, [messages, loadingMessage])
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return
+      // Trim to MAX_HISTORY to avoid unbounded growth
+      const toSave = messages.slice(-MAX_HISTORY)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
+    } catch (e) {
+      console.warn('Failed to save chat messages', e)
+    }
+  }, [messages])
+
+  // Persist theme
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_KEY, isChatDark ? 'dark' : 'light')
+    } catch (e) {
+      // ignore
+    }
+  }, [isChatDark])
+
+  // Prevent background scroll when maximized
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (isMaximized) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [isMaximized])
+
+  const clearConversation = () => {
+    // open confirmation modal
+    setShowClearConfirm(true)
+  }
+
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
+
+  const confirmClear = async () => {
+    try { localStorage.removeItem(STORAGE_KEY) } catch (e) {}
+    const sessionToken = localStorage.getItem('smrtz_chat_session_token')
+    if (sessionToken) {
+      await fetch(`/api/customer-support/messages?session_token=${sessionToken}`, { method: 'DELETE' }).catch(() => {})
+    }
+    setMessages([])
+    setShowClearConfirm(false)
+  }
+
+  const cancelClear = () => setShowClearConfirm(false)
+
+  // helper for optimistic POST with retries
+  const postWithRetry = async (url: string, body: any, retries = 2) => {
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      if (!res.ok) throw new Error('bad status')
+      return res.json()
+    } catch (e) {
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, 2 - retries)))
+        return postWithRetry(url, body, retries - 1)
+      }
+  console.warn('postWithRetry failed, queuing pending', e)
+  // Ensure queued payload contains clientMessageId so we can track per-message pending state
+  try {
+    if (body && body.clientMessageId) {
+      // mark this id as pending in UI
+      setPendingIds((p) => Array.from(new Set([...p, body.clientMessageId])))
+    }
+    addPendingMessage(body)
+  } catch (err) { console.warn('failed to queue pending', err) }
+  return null
+    }
+  }
 
   const sendMessage = async (messageText?: string, attachment?: any) => {
     const textToSend = messageText || inputValue
@@ -330,6 +563,12 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
 
     setMessages((prev) => [...prev, userMessage])
     setInputValue("")
+    // persist user message to server
+    try {
+      const sessionToken = getOrCreateSessionToken()
+      // optimistic POST with retry. include clientMessageId for tracking if it gets queued
+      postWithRetry('/api/customer-support/messages', { session_token: sessionToken, role: 'user', message: userMessage.text, created_at: userMessage.timestamp.toISOString(), clientMessageId: userMessage.id })
+    } catch (e) { }
 
     // Command-style quick actions (support, browsing, recommendations)
     const BASE = getBaseUrl()
@@ -567,6 +806,11 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
       setMessages(prev => prev.map(m => m.id === id ? { ...m, text: fullText.slice(0, index) } : m))
       if (index >= fullText.length) {
         if (typingIntervalRef.current) clearInterval(typingIntervalRef.current)
+        // once finished, persist the completed bot message to server (with retry) and include clientMessageId
+        try {
+          const sessionToken = getOrCreateSessionToken()
+          postWithRetry('/api/customer-support/messages', { session_token: sessionToken, role: 'bot', message: fullText, created_at: new Date().toISOString(), clientMessageId: id })
+        } catch (e) {}
       }
     }, 18) // ~55 chars/sec
   }
@@ -627,7 +871,7 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
       <div className="fixed bottom-24 right-6 z-50 group">
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => toggleOpen()}
             className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 border-2 border-white dark:border-gray-800"
             size="icon"
           >
@@ -669,11 +913,19 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-32 right-6 z-50 w-80 sm:w-96 h-[500px] max-h-[80vh]"
+            className={`fixed z-50 ${isMaximized ? 'inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)]' : 'bottom-32 right-6 w-80 sm:w-96 h-[500px] max-h-[80vh]'}`}
           >
-            <Card className="h-full flex flex-col bg-white/90 dark:bg-black/90 backdrop-blur-lg border shadow-2xl">
+            {/* Overlay backdrop when maximized */}
+            {isMaximized && (
+              <div
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setIsMaximized(false)}
+                aria-hidden
+              />
+            )}
+            <Card className={`h-full flex flex-col backdrop-blur-lg border shadow-2xl ${isChatDark ? 'bg-gray-900 text-white' : 'bg-white/90 dark:bg-black/90'}`}>
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b bg-primary text-white rounded-t-lg">
+              <motion.div layout className={`flex items-center justify-between p-4 border-b ${isChatDark ? 'bg-gray-900 text-white' : 'bg-primary text-white'} rounded-t-lg`}>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -686,15 +938,67 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
                     <p className="text-xs text-white/80">Online • Typically replies instantly</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="text-white hover:bg-white/20 h-8 w-8"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+                <div className="flex items-center space-x-2">
+                  {/* pending sync badge */}
+                  {isRetrying ? (
+                    <div className="relative" title="Syncing pending messages...">
+                      <svg className="h-5 w-5 text-yellow-400 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle className="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                        <path d="M21 12a9 9 0 0 1-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  ) : pendingCount > 0 && (
+                    <div className="relative" title={`${pendingCount} messages pending sync`}>
+                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1" />
+                      </svg>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={clearConversation}
+                    className="text-xs bg-transparent text-white/80 hover:text-white px-2 py-1 rounded"
+                    title="Clear conversation"
+                  >
+                    Clear
+                  </button>
+
+                  {/* Theme toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsChatDark((s) => !s)}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                    aria-label="Toggle chat theme"
+                    title="Toggle theme"
+                  >
+                    {isChatDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMaximized(!isMaximized)}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                    aria-label={isMaximized ? 'Minimize chat' : 'Maximize chat'}
+                    title={isMaximized ? 'Minimize' : 'Maximize'}
+                  >
+                    {isMaximized ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => closeChat()}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                    aria-label="Close chat"
+                    title="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </motion.div>
               {/* Quick suggestions */}
               {suggestions.length > 0 && (
                 <div className="px-4 pb-2 flex flex-wrap gap-2">
@@ -715,7 +1019,7 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
               )}
 
               {/* Messages */}
-              <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-background">
+              <div className={`flex-1 p-4 space-y-4 overflow-y-auto ${isChatDark ? 'bg-gray-900' : 'bg-background'}`}>
                 {messages.map((message) => (
                   <motion.div
                     key={message.id}
@@ -760,7 +1064,28 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
                         }`}
                       >
                         {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {pendingIds.includes(message.id) && (
+                          <span title="Syncing..." className="inline-flex items-center ml-2">
+                            <svg className="h-4 w-4 text-yellow-400 animate-spin" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
+                              <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"></path>
+                            </svg>
+                          </span>
+                        )}
                       </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          // clear saved history
+                          try { localStorage.removeItem(STORAGE_KEY) } catch (e) {}
+                          setMessages([])
+                        }}
+                        className="text-xs bg-transparent text-gray-400 hover:text-red-500 px-2 py-1 rounded"
+                        title="Clear conversation"
+                      >
+                        Clear
+                      </button>
                     </div>
                   </motion.div>
                 ))}
@@ -770,8 +1095,8 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
                     animate={{ opacity: 1, y: 0 }}
                     className="flex justify-start"
                   >
-                    <div className="bg-card border px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
-                      <div className="flex items-center space-x-3 text-sm text-muted-foreground">
+                    <div className={`${isChatDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-card border'} px-4 py-3 rounded-2xl rounded-bl-md shadow-sm`}>
+                      <div className={`flex items-center space-x-3 text-sm ${isChatDark ? 'text-white/85' : 'text-muted-foreground'}`}>
                         <Search className="h-4 w-4 animate-spin-slow" />
                         <p className="whitespace-pre-line">{loadingMessage}</p>
                         <div className="flex space-x-1 ml-1">
@@ -829,6 +1154,8 @@ Keep responses concise, friendly, and relevant to our services. Start the conver
                         onChange={handleFileUpload}
                         className="hidden"
                         accept="image/*,.pdf,.doc,.docx,.txt"
+                        aria-label="Attach a file"
+                        title="Attach a file"
                       />
                       <Button
                         variant="ghost"

@@ -40,9 +40,15 @@ export default function AdminFeedbackPage() {
   const [response, setResponse] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
+  const [perPage, setPerPage] = useState<number>(9)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     fetchFeedback()
+  }, [statusFilter, categoryFilter])
+
+  useEffect(() => {
+    setPage(1)
   }, [statusFilter, categoryFilter])
 
   const fetchFeedback = async () => {
@@ -177,6 +183,7 @@ export default function AdminFeedbackPage() {
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
           <select
+            aria-label="Filter by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 border rounded-lg bg-white dark:bg-black text-sm"
@@ -187,6 +194,7 @@ export default function AdminFeedbackPage() {
             <option value="resolved">Resolved</option>
           </select>
           <select
+            aria-label="Filter by category"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="px-3 py-2 border rounded-lg bg-white dark:bg-black text-sm"
@@ -263,8 +271,22 @@ export default function AdminFeedbackPage() {
       </div>
 
       {/* Feedback List */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">Showing {feedback.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, feedback.length)} of {feedback.length}</div>
+        <div className="flex items-center gap-2">
+          <select aria-label="Items per page" value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+            <option value={9}>9</option>
+            <option value={18}>18</option>
+            <option value={27}>27</option>
+            <option value={36}>36</option>
+          </select>
+          <Button size="sm" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}>Prev</Button>
+          <Button size="sm" onClick={()=>setPage(p=>Math.min(Math.max(1, Math.ceil(feedback.length / perPage)), p+1))} disabled={page===Math.max(1, Math.ceil(feedback.length / perPage))}>Next</Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-        {feedback.map((item) => (
+        {feedback.slice((page - 1) * perPage, page * perPage).map((item) => (
           <Card key={item.id} className="bg-card border">
             <CardHeader className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">

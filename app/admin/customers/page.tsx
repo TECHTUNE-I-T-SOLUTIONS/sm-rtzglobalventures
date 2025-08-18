@@ -32,6 +32,8 @@ export default function AdminCustomersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -49,6 +51,10 @@ export default function AdminCustomersPage() {
   useEffect(() => {
     filterCustomers()
   }, [customers, searchQuery])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery])
 
   const fetchCustomers = async () => {
     try {
@@ -238,8 +244,22 @@ export default function AdminCustomersPage() {
           <CardTitle className="text-lg sm:text-xl">Customers ({filteredCustomers.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm text-muted-foreground">Showing {filteredCustomers.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, filteredCustomers.length)} of {filteredCustomers.length}</div>
+            <div className="flex items-center gap-2">
+              <select aria-label="Items per page" value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+                <option value={40}>40</option>
+              </select>
+              <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+              <Button size="sm" onClick={() => setPage((p) => Math.min(Math.max(1, Math.ceil(filteredCustomers.length / perPage)), p + 1))} disabled={page === Math.max(1, Math.ceil(filteredCustomers.length / perPage))}>Next</Button>
+            </div>
+          </div>
+
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCustomers.map((customer) => (
+            {filteredCustomers.slice((page - 1) * perPage, page * perPage).map((customer) => (
               <motion.div
                 key={customer.id}
                 initial={{ opacity: 0 }}

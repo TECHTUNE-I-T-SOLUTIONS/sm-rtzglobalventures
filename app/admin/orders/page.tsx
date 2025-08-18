@@ -49,6 +49,8 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("")
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -66,6 +68,10 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     filterOrders()
   }, [orders, searchQuery, statusFilter])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter])
 
   const fetchOrders = async () => {
     try {
@@ -168,6 +174,11 @@ export default function AdminOrdersPage() {
     totalRevenue: orders.reduce((sum, order) => (order.payment_status === "paid" ? sum + order.total_amount : sum), 0),
   }
 
+  const pageCount = Math.max(1, Math.ceil(filteredOrders.length / perPage))
+  const start = (page - 1) * perPage
+  const end = start + perPage
+  const paginatedOrders = filteredOrders.slice(start, end)
+
   const renderShippingAddress = (address: any) => {
     if (typeof address === "string") {
       try {
@@ -251,6 +262,7 @@ export default function AdminOrdersPage() {
               {/* Status Filter Dropdown */}
               <div className="w-full sm:w-auto">
                 <select
+                  aria-label="Filter by status"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="w-full px-3 py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-black"
@@ -269,9 +281,23 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Orders Grid */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">Showing {filteredOrders.length === 0 ? 0 : start + 1}-{Math.min(end, filteredOrders.length)} of {filteredOrders.length}</div>
+        <div className="flex items-center gap-2">
+          <select aria-label="Items per page" value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={30}>30</option>
+            <option value={40}>40</option>
+          </select>
+          <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+          <Button size="sm" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={page === pageCount}>Next</Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <AnimatePresence>
-          {filteredOrders.map((order) => (
+          {paginatedOrders.map((order) => (
             <motion.div key={order.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <Card className="bg-card border h-full flex flex-col">
                 <CardHeader className="flex-row items-center justify-between p-3 sm:p-6">
