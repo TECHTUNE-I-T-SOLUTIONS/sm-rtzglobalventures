@@ -20,7 +20,9 @@ import {
   Menu,
   X,
   MessageSquare,
-  Newspaper
+  Bell,
+  Newspaper,
+  Image
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -85,6 +87,16 @@ const sidebarItems = [
     href: "/admin/posts",
     icon: Newspaper,
   },
+  {
+    title: "Push Notifications",
+    href: "/admin/pushes",
+    icon: Bell,
+  },
+    {
+      title: "Manage Images",
+      href: "/admin/push-images",
+      icon: Image,
+    },
   {
     title: "Services",
     href: "/admin/services",

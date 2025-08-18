@@ -134,6 +134,13 @@ export default function AdminEbooksPage() {
 
         if (error) throw error
         toast.success("E-book uploaded successfully!")
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const token = session?.access_token
+          await fetch('/api/push/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` }, body: JSON.stringify({ title: `New e-book: ${title}`, message: description, url: '/products/ebooks', imageUrl: coverImageUrl, persist: true }) })
+        } catch (e) {
+          console.warn('failed to broadcast ebook push', e)
+        }
       }
 
       setTitle("")

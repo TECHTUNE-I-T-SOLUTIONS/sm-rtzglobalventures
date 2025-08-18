@@ -52,6 +52,8 @@ export default function AdminDisputesPage() {
   const [adminNotes, setAdminNotes] = useState("")
   const [resolutionNotes, setResolutionNotes] = useState("")
   const [isMobile, setIsMobile] = useState(false)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -69,6 +71,10 @@ export default function AdminDisputesPage() {
   useEffect(() => {
     filterDisputes()
   }, [disputes, searchQuery, statusFilter, priorityFilter])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter, priorityFilter])
 
   const fetchDisputes = async () => {
     try {
@@ -354,7 +360,7 @@ export default function AdminDisputesPage() {
       {/* Filters */}
       <Card className="bg-card border">
         <CardContent className="p-3 sm:p-4 lg:p-6">
-          <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -366,6 +372,7 @@ export default function AdminDisputesPage() {
               />
             </div>
             <select
+              aria-label="Filter by status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-black"
@@ -377,6 +384,7 @@ export default function AdminDisputesPage() {
               <option value="closed">Closed</option>
             </select>
             <select
+              aria-label="Filter by priority"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-black"
@@ -406,8 +414,23 @@ export default function AdminDisputesPage() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredDisputes.map((dispute, index) => (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm text-muted-foreground">Showing {filteredDisputes.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, filteredDisputes.length)} of {filteredDisputes.length}</div>
+                <div className="flex items-center gap-2">
+                  <select aria-label="Items per page" value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={40}>40</option>
+                  </select>
+                  <Button size="sm" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}>Prev</Button>
+                  <Button size="sm" onClick={()=>setPage(p=>Math.min(Math.max(1, Math.ceil(filteredDisputes.length / perPage)), p+1))} disabled={page===Math.max(1, Math.ceil(filteredDisputes.length / perPage))}>Next</Button>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredDisputes.slice((page - 1) * perPage, page * perPage).map((dispute, index) => (
                 <motion.div
                   key={dispute.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -465,8 +488,9 @@ export default function AdminDisputesPage() {
                   </Button>
                 </motion.div>
               ))}
-            </div>
-          )}
+        </div>
+        </>
+      )}
         </CardContent>
       </Card>
 

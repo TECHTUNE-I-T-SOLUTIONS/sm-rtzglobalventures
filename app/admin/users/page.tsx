@@ -29,6 +29,8 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     fetchUsers()
@@ -37,6 +39,10 @@ export default function AdminUsersPage() {
   useEffect(() => {
     filterAndSortUsers()
   }, [users, searchQuery, roleFilter, sortBy])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, roleFilter, sortBy])
 
   const fetchUsers = async () => {
     try {
@@ -207,7 +213,21 @@ export default function AdminUsersPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredUsers.map((user, index) => (
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm text-muted-foreground">Showing {filteredUsers.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, filteredUsers.length)} of {filteredUsers.length}</div>
+                <div className="flex items-center gap-2">
+                  <select aria-label="Items per page" value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={40}>40</option>
+                  </select>
+                  <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+                  <Button size="sm" onClick={() => setPage((p) => Math.min(Math.max(1, Math.ceil(filteredUsers.length / perPage)), p + 1))} disabled={page === Math.max(1, Math.ceil(filteredUsers.length / perPage))}>Next</Button>
+                </div>
+              </div>
+
+            {filteredUsers.slice((page - 1) * perPage, page * perPage).map((user, index) => (
               <motion.div
                 key={user.id}
                 initial={{ opacity: 0, y: 20 }}

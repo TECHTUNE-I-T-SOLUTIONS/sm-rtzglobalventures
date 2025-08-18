@@ -40,6 +40,7 @@ import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRef } from "react"
 import { LogoutModal } from "@/components/modals/logout-modal"
+// PushSubscribeModal moved to ClientLayout to avoid header clipping
 
 export function Header() {
   const { user, signOut } = useAuth()
@@ -272,6 +273,8 @@ export function Header() {
                   </Link>
                 </Button>
               )}
+
+              {/* Push subscription modal is mounted in ClientLayout */}
 
               {/* Cart */}
               <div className="scale-90 sm:scale-100">

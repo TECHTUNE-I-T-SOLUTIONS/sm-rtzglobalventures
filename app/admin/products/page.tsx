@@ -58,6 +58,8 @@ export default function AdminProductsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [perPage, setPerPage] = useState<number>(12)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     fetchProducts()
@@ -66,6 +68,10 @@ export default function AdminProductsPage() {
   useEffect(() => {
     filterAndSortProducts()
   }, [products, searchQuery, categoryFilter, statusFilter, sortBy])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, categoryFilter, statusFilter, sortBy])
 
   const fetchProducts = async () => {
     try {
@@ -617,7 +623,7 @@ export default function AdminProductsPage() {
       </Card>
 
       {/* Products Grid */}
-      {filteredProducts.length === 0 ? (
+  {filteredProducts.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -634,8 +640,23 @@ export default function AdminProductsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product, index) => (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm text-muted-foreground">Showing {filteredProducts.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, filteredProducts.length)} of {filteredProducts.length}</div>
+            <div className="flex items-center gap-2">
+              <select aria-label="Items per page" value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={36}>36</option>
+                <option value={48}>48</option>
+              </select>
+              <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+              <Button size="sm" onClick={() => setPage((p) => Math.min(Math.max(1, Math.ceil(filteredProducts.length / perPage)), p + 1))} disabled={page === Math.max(1, Math.ceil(filteredProducts.length / perPage))}>Next</Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.slice((page - 1) * perPage, page * perPage).map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
@@ -720,6 +741,7 @@ export default function AdminProductsPage() {
             </motion.div>
           ))}
         </div>
+        </>
       )}
 
       {/* Edit Dialog */}

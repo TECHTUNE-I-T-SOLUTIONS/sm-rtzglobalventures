@@ -25,6 +25,8 @@ export default function NotificationsPage() {
   const { user } = useAuthStore()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
   const router = useRouter()
 
   useEffect(() => {
@@ -32,6 +34,10 @@ export default function NotificationsPage() {
       fetchNotifications()
     }
   }, [user])
+
+  useEffect(()=>{
+    setPage(1)
+  },[perPage])
 
   const fetchNotifications = async () => {
     try {
@@ -175,7 +181,7 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {notifications.length === 0 ? (
+  {notifications.length === 0 ? (
           <Card className="bg-card border shadow-md rounded-xl">
             <CardContent className="p-8 sm:p-12 text-center flex flex-col items-center">
               <Bell className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mb-4" />
@@ -186,8 +192,23 @@ export default function NotificationsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3 sm:space-y-4">
-            {notifications.map((notification, index) => (
+          <>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm text-muted-foreground">Showing {notifications.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, notifications.length)} of {notifications.length}</div>
+              <div className="flex items-center gap-2">
+                <select aria-label="Items per page" value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <Button size="sm" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}>Prev</Button>
+                <Button size="sm" onClick={()=>setPage(p=>Math.min(Math.max(1, Math.ceil(notifications.length / perPage)), p+1))} disabled={page===Math.max(1, Math.ceil(notifications.length / perPage))}>Next</Button>
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4">
+            {notifications.slice((page - 1) * perPage, page * perPage).map((notification, index) => (
               <motion.div
                 key={notification.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -242,6 +263,7 @@ export default function NotificationsPage() {
               </motion.div>
             ))}
           </div>
+          </>
         )}
       </div>
     </div>

@@ -58,6 +58,8 @@ export default function BusinessServicesPage() {
   })
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
   
   const chatFileInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -71,6 +73,11 @@ export default function BusinessServicesPage() {
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  // Reset pagination when filters/search/sort change
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter, sortBy])
 
   const verifyPayment = async (reference: string) => {
     const toastId = toast.loading("Verifying payment...");
@@ -518,6 +525,7 @@ export default function BusinessServicesPage() {
             </div>
             <div className="flex gap-2">
               <select
+                aria-label="Filter services by status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className={`flex-1 px-2 py-1 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}
@@ -529,6 +537,7 @@ export default function BusinessServicesPage() {
                 <option value="cancelled">Cancelled</option>
               </select>
               <select
+                aria-label="Sort services"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className={`flex-1 px-2 py-1 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}
@@ -542,6 +551,43 @@ export default function BusinessServicesPage() {
 
           {/* Services List */}
           <div className="flex-1 overflow-y-auto">
+            {/* Pagination controls for services list */}
+            {sortedServices.length > 0 && (
+              <div className="flex items-center justify-between px-3 py-2">
+                <div className="text-sm text-muted-foreground">
+                  Showing {sortedServices.length === 0 ? 0 : (page - 1) * perPage + 1} - {Math.min(page * perPage, sortedServices.length)} of {sortedServices.length}
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    aria-label="Services per page"
+                    value={perPage}
+                    onChange={(e) => setPerPage(Number(e.target.value))}
+                    className="px-2 py-1 border rounded-lg bg-white dark:bg-gray-800"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={40}>40</option>
+                  </select>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className={`px-3 py-1 border rounded-md ${page <= 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      Prev
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => p + 1)}
+                      disabled={page >= Math.ceil(sortedServices.length / perPage)}
+                      className={`px-3 py-1 border rounded-md ${page >= Math.ceil(sortedServices.length / perPage) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {sortedServices.length === 0 ? (
               <div className="p-8 text-center">
                 <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -555,7 +601,7 @@ export default function BusinessServicesPage() {
                 </Button>
               </div>
             ) : (
-              sortedServices.map((service) => {
+              sortedServices.slice((page - 1) * perPage, page * perPage).map((service) => {
                 const serviceType = serviceTypes.find((type) => type.value === service.service_type)
                 return (
                   <button
@@ -880,6 +926,7 @@ export default function BusinessServicesPage() {
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png"
                   onChange={handleChatFileSelect}
                   className="hidden"
+                  aria-label="Upload chat attachments"
                 />
                 
                 <Button
@@ -1010,6 +1057,7 @@ export default function BusinessServicesPage() {
                   <div>
                     <label className="block text-sm font-medium mb-2">Priority</label>
                     <select
+                      aria-label="Select priority"
                       value={newService.priority}
                       onChange={(e) => setNewService({ ...newService, priority: e.target.value as any })}
                       className="w-full px-3 py-2 border rounded-md bg-white dark:bg-black text-sm"
@@ -1046,6 +1094,7 @@ export default function BusinessServicesPage() {
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png"
                       onChange={(e) => setUploadedFiles(Array.from(e.target.files || []))}
                       className="hidden"
+                      aria-label="Upload service files"
                     />
                     <Button
                       variant="outline"

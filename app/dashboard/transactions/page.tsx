@@ -29,6 +29,8 @@ export default function TransactionsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     if (user) {
@@ -39,6 +41,11 @@ export default function TransactionsPage() {
   useEffect(() => {
     filterTransactions()
   }, [transactions, searchQuery, statusFilter, typeFilter])
+
+  // Reset to first page when filters/search change
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter, typeFilter])
 
   const fetchTransactions = async () => {
     try {
@@ -230,6 +237,7 @@ export default function TransactionsPage() {
               />
             </div>
             <select
+              aria-label="Filter by status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 border rounded-lg bg-background"
@@ -240,6 +248,7 @@ export default function TransactionsPage() {
               <option value="failed">Failed</option>
             </select>
             <select
+              aria-label="Filter by type"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-3 py-2 border rounded-lg bg-background"
@@ -258,6 +267,44 @@ export default function TransactionsPage() {
           <CardTitle>Transactions ({filteredTransactions.length})</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Pagination controls */}
+          {filteredTransactions.length > 0 && (
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredTransactions.length === 0 ? 0 : (page - 1) * perPage + 1} - {Math.min(page * perPage, filteredTransactions.length)} of {filteredTransactions.length}
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  aria-label="Items per page"
+                  value={perPage}
+                  onChange={(e) => setPerPage(Number(e.target.value))}
+                  className="px-2 py-1 border rounded-lg bg-background"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                  <option value={40}>40</option>
+                </select>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className={`px-3 py-1 border rounded-md ${page <= 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={page >= Math.ceil(filteredTransactions.length / perPage)}
+                    className={`px-3 py-1 border rounded-md ${page >= Math.ceil(filteredTransactions.length / perPage) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-12">
               <CreditCard className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -270,7 +317,9 @@ export default function TransactionsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredTransactions.map((transaction, index) => (
+              {filteredTransactions
+                .slice((page - 1) * perPage, page * perPage)
+                .map((transaction, index) => (
                 <motion.div
                   key={transaction.id}
                   initial={{ opacity: 0, y: 20 }}

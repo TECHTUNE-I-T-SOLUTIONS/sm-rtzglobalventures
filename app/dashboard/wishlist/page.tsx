@@ -384,6 +384,7 @@ export default function WishlistPage() {
                       <div className="relative w-full sm:w-auto">
                         <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <select
+                          aria-label="Filter wishlist by category"
                           value={categoryFilter}
                           onChange={(e) => setCategoryFilter(e.target.value)}
                           className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none cursor-pointer"
@@ -401,6 +402,7 @@ export default function WishlistPage() {
                       <div className="relative w-full sm:w-auto">
                         <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <select
+                          aria-label="Sort wishlist items"
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value)}
                           className="pl-10 pr-8 py-2 w-full sm:w-auto border rounded-md bg-white dark:bg-black text-sm appearance-none cursor-pointer"
@@ -505,6 +507,7 @@ export default function WishlistPage() {
                           <div className="absolute top-2 left-2">
                             <input
                               type="checkbox"
+                              aria-label={`Select wishlist item ${item.products.name}`}
                               checked={selectedItems.includes(item.id)}
                               onChange={() => toggleItemSelection(item.id)}
                               className="w-4 h-4 text-primary bg-background border-gray-300 rounded focus:ring-primary"

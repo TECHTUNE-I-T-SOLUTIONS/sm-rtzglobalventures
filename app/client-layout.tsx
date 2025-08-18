@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast"
 import { CookieConsent } from "@/components/ui/cookie-consent"
 import { CustomerSupportChat } from "@/components/customer-support/chat"
 import { ConditionalFeedbackButton } from "@/components/feedback/conditional-feedback-button"
+import PushSubscribeModal from '@/components/push/push-subscribe-modal'
 import { CartProvider } from "@/contexts/cart-context"
 import { useAuthStore } from "@/hooks/use-auth"
 import { useContextMenu } from "@/hooks/use-context-menu"
@@ -93,6 +94,8 @@ export function ClientLayout({
           }}
         />
         <div id="modal-root" /> {/* Added this line */}
+  {/* Push subscription modal is mounted here so it overlays above header */}
+  <PushSubscribeModal />
         <CookieConsent />
         <CustomerSupportChat />
         <ConditionalFeedbackButton />

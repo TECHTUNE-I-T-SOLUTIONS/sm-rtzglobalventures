@@ -11,10 +11,16 @@ import { Footer } from "@/components/layout/footer"
 export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [perPage, setPerPage] = useState<number>(9)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     fetchPosts()
   }, [])
+
+  useEffect(() => {
+    setPage(1)
+  }, [perPage])
 
   const fetchPosts = async () => {
     setLoading(true)
@@ -59,8 +65,22 @@ export default function PostsPage() {
         {loading ? (
           <LoadingSkeleton />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm text-muted-foreground">Showing {posts.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, posts.length)} of {posts.length}</div>
+              <div className="flex items-center gap-2">
+                <select aria-label="Items per page" value={perPage} onChange={(e)=>{ setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+                  <option value={6}>6</option>
+                  <option value={9}>9</option>
+                  <option value={12}>12</option>
+                </select>
+                <button className="px-3 py-1 border rounded" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}>Prev</button>
+                <button className="px-3 py-1 border rounded" onClick={()=>setPage(p=>Math.min(Math.max(1, Math.ceil(posts.length / perPage)), p+1))} disabled={page===Math.max(1, Math.ceil(posts.length / perPage))}>Next</button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posts.slice((page - 1) * perPage, page * perPage).map((post) => (
               <Card key={post.id}>
                 <CardHeader>
                   <CardTitle>{post.title}</CardTitle>
@@ -77,7 +97,8 @@ export default function PostsPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+          </>
         )}
       </main>
       <Footer />

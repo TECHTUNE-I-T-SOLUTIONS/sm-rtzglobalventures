@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabase"
-import { Users, Package, ShoppingCart, DollarSign, TrendingUp, TrendingDown, BarChart3 } from "lucide-react"
+import { Users, Package, ShoppingCart, DollarSign, TrendingUp, TrendingDown, BarChart3, Bell, Image } from "lucide-react"
 import { motion } from "framer-motion"
 
 interface Ebook {
@@ -298,6 +298,16 @@ export default function AdminDashboard() {
                 <BarChart3 className="h-6 w-6 text-primary mb-2" />
                 <p className="font-semibold">View Analytics</p>
                 <p className="text-sm text-muted-foreground">Sales reports</p>
+              </Link>
+              <Link href="/admin/pushes" className="p-4 border rounded-lg hover:bg-muted transition-colors text-left">
+                <Bell className="h-6 w-6 text-primary mb-2" />
+                <p className="font-semibold">Pushes</p>
+                <p className="text-sm text-muted-foreground">Compose and send web pushes</p>
+              </Link>
+              <Link href="/admin/push-images" className="p-4 border rounded-lg hover:bg-muted transition-colors text-left">
+                <Image className="h-6 w-6 text-primary mb-2" />
+                <p className="font-semibold">Manage Images</p>
+                <p className="text-sm text-muted-foreground">Uploaded push images</p>
               </Link>
             </div>
           </CardContent>

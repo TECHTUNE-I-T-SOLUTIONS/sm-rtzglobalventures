@@ -65,6 +65,8 @@ export default function AdminTransactionsPage() {
   const [providerFilter, setProviderFilter] = useState("")
   const [dateRange, setDateRange] = useState("")
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [perPage, setPerPage] = useState<number>(10)
+  const [page, setPage] = useState<number>(1)
 
   useEffect(() => {
     fetchTransactions()
@@ -73,6 +75,10 @@ export default function AdminTransactionsPage() {
   useEffect(() => {
     filterTransactions()
   }, [transactions, searchQuery, statusFilter, providerFilter, dateRange])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, statusFilter, providerFilter, dateRange])
 
   const fetchTransactions = async () => {
     setLoading(true)
@@ -193,6 +199,11 @@ export default function AdminTransactionsPage() {
     }
   }
 
+  const pageCount = Math.max(1, Math.ceil(filteredTransactions.length / perPage))
+  const start = (page - 1) * perPage
+  const end = start + perPage
+  const paginatedTransactions = filteredTransactions.slice(start, end)
+
   if (loading) {
     return (
       <div className="space-y-6 p-4 md:p-6">
@@ -238,19 +249,19 @@ export default function AdminTransactionsPage() {
         <CardContent className="p-4 md:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Input placeholder="Search by Ref, Email, Name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-background" />
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border rounded-lg bg-white dark:bg-black">
+            <select aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border rounded-lg bg-white dark:bg-black">
               <option value="">All Statuses</option>
               <option value="success">Success</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            <select value={providerFilter} onChange={(e) => setProviderFilter(e.target.value)} className="px-3 py-2 border rounded-lg bg-white dark:bg-black">
+            <select aria-label="Filter by provider" value={providerFilter} onChange={(e) => setProviderFilter(e.target.value)} className="px-3 py-2 border rounded-lg bg-white dark:bg-black">
               <option value="">All Providers</option>
               <option value="paystack">Paystack</option>
               <option value="opay">OPay</option>
             </select>
-            <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="px-3 py-2 border rounded-lg bg-white dark:bg-black">
+            <select aria-label="Filter by date range" value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="px-3 py-2 border rounded-lg bg-white dark:bg-black">
               <option value="">All Time</option>
               <option value="today">Today</option>
               <option value="week">This Week</option>
@@ -263,9 +274,23 @@ export default function AdminTransactionsPage() {
       </Card>
 
       {/* Transactions Grid */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">Showing {filteredTransactions.length === 0 ? 0 : start + 1}-{Math.min(end, filteredTransactions.length)} of {filteredTransactions.length}</div>
+        <div className="flex items-center gap-2">
+          <select aria-label="Items per page" value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }} className="px-2 py-1 border rounded bg-white dark:bg-black text-sm">
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={30}>30</option>
+            <option value={40}>40</option>
+          </select>
+          <Button size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+          <Button size="sm" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={page === pageCount}>Next</Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
-          {filteredTransactions.map((t) => (
+          {paginatedTransactions.map((t) => (
             <motion.div key={t.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <Card className="bg-card border h-full flex flex-col hover:shadow-lg transition-shadow">
                 <CardHeader className="flex-row items-start justify-between gap-4">
