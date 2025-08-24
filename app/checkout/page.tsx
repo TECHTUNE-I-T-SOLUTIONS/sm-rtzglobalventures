@@ -163,12 +163,12 @@ export default function CheckoutPage() {
         }))
 
         const { error: acquiredError } = await supabase.from("acquired_ebooks").insert(acquiredEbooks)
-        // If there's an error and it's NOT a unique constraint violation (23505), then throw it
+        // If there's an error and it's NOT a unique constraint violation (23505), then I'll throw it
         if (acquiredError && acquiredError.code !== '23505') {
           throw acquiredError
         }
 
-        // Update order status to 'delivered' after successful acquisition
+        // Updates order status to 'delivered' after successful acquisition
         const { error: updateOrderError } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id)
         if (updateOrderError) throw updateOrderError
 
@@ -179,7 +179,7 @@ export default function CheckoutPage() {
         return
       }
 
-      // Proceed with regular checkout for physical products or paid ebooks
+      // Proceeds with regular checkout for physical products or paid ebooks
       const orderData = {
         user_id: user?.id,
         total_amount: finalTotal,
