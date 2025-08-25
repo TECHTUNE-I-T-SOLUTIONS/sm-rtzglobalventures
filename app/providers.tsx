@@ -5,7 +5,7 @@ import type React from "react"
 import { createContext, useContext, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useAuthStore } from "@/hooks/use-auth"
-import { useCartStore } from "@/hooks/use-cart"
+// import { useCartStore } from "@/hooks/use-cart"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const SupabaseContext = createContext<any>(null)

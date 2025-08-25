@@ -38,7 +38,7 @@ export function ClientLayout({
       }
     )
 
-    // Fetch initial session
+    // to fetch initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUser(session.user)
@@ -94,7 +94,7 @@ export function ClientLayout({
           }}
         />
         <div id="modal-root" /> {/* Added this line */}
-  {/* Push subscription modal is mounted here so it overlays above header */}
+  {/* Push subscription modal is mounted here so it overlays above the header */}
   <PushSubscribeModal />
         <CookieConsent />
         <CustomerSupportChat />
