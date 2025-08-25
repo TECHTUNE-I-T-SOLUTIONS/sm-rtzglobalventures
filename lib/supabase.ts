@@ -1,7 +1,10 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs" 
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-export const supabase = createClientComponentClient() as SupabaseClient
+// createClientComponentClient returns a SupabaseClient typed with a GenericSchema
+// which may differ from our `Database` type. Cast via `unknown` first to satisfy
+// TypeScript during the Vercel build where the types must align exactly.
+export const supabase = createClientComponentClient<Database>()
 
 export type Database = {
   public: {
