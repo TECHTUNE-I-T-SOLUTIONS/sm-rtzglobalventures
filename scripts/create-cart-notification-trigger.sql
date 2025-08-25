@@ -1,6 +1,4 @@
 -- Cart Item Notification Triggers
--- This script creates triggers to send notifications when items are added to cart
-
 -- Function to notify when item is added to cart
 CREATE OR REPLACE FUNCTION notify_cart_item_added()
 RETURNS TRIGGER AS $$
@@ -16,13 +14,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger for cart item addition
+-- to trigger for cart item addition
 CREATE TRIGGER cart_item_added_notification_trigger
   AFTER INSERT ON cart_items
   FOR EACH ROW
   EXECUTE FUNCTION notify_cart_item_added();
 
--- Function to notify when item is removed from cart
+-- I added a function to notify when item is removed from the cart
 CREATE OR REPLACE FUNCTION notify_cart_item_removed()
 RETURNS TRIGGER AS $$
 BEGIN

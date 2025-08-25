@@ -1,4 +1,4 @@
--- Create disputes table
+-- Createed disputes table
 CREATE TABLE IF NOT EXISTS disputes (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -16,14 +16,14 @@ CREATE TABLE IF NOT EXISTS disputes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create indexes
+-- Created indexes
 CREATE INDEX IF NOT EXISTS idx_disputes_order_id ON disputes(order_id);
 CREATE INDEX IF NOT EXISTS idx_disputes_user_id ON disputes(user_id);
 CREATE INDEX IF NOT EXISTS idx_disputes_status ON disputes(status);
 CREATE INDEX IF NOT EXISTS idx_disputes_priority ON disputes(priority);
 CREATE INDEX IF NOT EXISTS idx_disputes_created_at ON disputes(created_at);
 
--- Create updated_at trigger
+-- Created updated_at trigger
 CREATE TRIGGER update_disputes_updated_at 
     BEFORE UPDATE ON disputes 
     FOR EACH ROW 

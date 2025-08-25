@@ -1,11 +1,10 @@
--- Fix for OAuth trigger function
--- This script fixes the trigger that's causing "Database error saving new user"
+-- Fix script for OAuth trigger function
 
--- Drop the existing trigger and function
+-- to drop the existing trigger and function
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS handle_new_user();
 
--- Create an improved function to handle new user creation
+-- to create an improved function to handle new user creation
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -26,13 +25,13 @@ BEGIN
   RETURN NEW;
 EXCEPTION
   WHEN OTHERS THEN
-    -- Log the error but don't fail the user creation
+    -- Logs the error but doesn't fail the user creation
     RAISE WARNING 'Error creating profile for user %: %', NEW.id, SQLERRM;
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 
--- Recreate the trigger
+-- Recreates the trigger
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();

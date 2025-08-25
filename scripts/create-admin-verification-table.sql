@@ -1,4 +1,4 @@
--- Create temporary table for admin verification
+-- I'm creating a temporary table for admin verification
 CREATE TABLE IF NOT EXISTS public.admin_verifications (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   email text NOT NULL UNIQUE,
@@ -10,14 +10,14 @@ CREATE TABLE IF NOT EXISTS public.admin_verifications (
   CONSTRAINT admin_verifications_email_check CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
--- Create index for performance
+-- Createed index for performance
 CREATE INDEX IF NOT EXISTS idx_admin_verifications_email ON public.admin_verifications(email);
 CREATE INDEX IF NOT EXISTS idx_admin_verifications_expires_at ON public.admin_verifications(expires_at);
 
--- Grant permissions
+-- to grant permissions
 GRANT ALL ON public.admin_verifications TO authenticated, anon, service_role;
 
--- Function to clean up expired verifications
+-- the function to clean up expired verifications
 CREATE OR REPLACE FUNCTION cleanup_expired_admin_verifications()
 RETURNS void AS $$
 BEGIN
@@ -26,7 +26,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create a trigger to automatically clean up expired verifications
+-- to create a trigger to automatically clean up expired verifications
 CREATE OR REPLACE FUNCTION trigger_cleanup_expired_admin_verifications()
 RETURNS trigger AS $$
 BEGIN
@@ -35,7 +35,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger (runs on any insert/update)
+-- to create trigger (runs on any insert/update)
 DROP TRIGGER IF EXISTS cleanup_expired_admin_verifications_trigger ON public.admin_verifications;
 CREATE TRIGGER cleanup_expired_admin_verifications_trigger
   AFTER INSERT OR UPDATE ON public.admin_verifications
@@ -59,10 +59,10 @@ RETURNS text AS $$
 DECLARE
   v_verification_code text;
 BEGIN
-  -- Generate 6-digit verification code
+  -- to generate 6-digit verification code
   v_verification_code := generate_admin_verification_code();
   
-  -- Insert or update verification record
+  -- to insert or update verification record
   INSERT INTO public.admin_verifications (email, full_name, verification_code)
   VALUES (p_email, p_full_name, v_verification_code)
   ON CONFLICT (email) 
@@ -85,7 +85,7 @@ RETURNS boolean AS $$
 DECLARE
   v_count integer;
 BEGIN
-  -- Check if verification code is valid and not expired
+  -- to check if verification code is valid and not expired
   SELECT COUNT(*) INTO v_count
   FROM public.admin_verifications
   WHERE email = p_email 
@@ -119,7 +119,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant execute permissions
+-- to grant execute permissions
 GRANT EXECUTE ON FUNCTION create_admin_verification(text, text) TO authenticated, anon, service_role;
 GRANT EXECUTE ON FUNCTION verify_admin_verification(text, text) TO authenticated, anon, service_role;
 GRANT EXECUTE ON FUNCTION get_verified_admin_data(text) TO authenticated, anon, service_role;
