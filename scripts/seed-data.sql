@@ -1,4 +1,4 @@
--- Insert sample products
+-- to insert sample products
 INSERT INTO products (name, description, price, category, subcategory, image_url, stock_quantity, is_featured, is_active) VALUES
 -- Computer accessories
 ('USB-C Hub 7-in-1', 'Multi-port USB-C hub with HDMI, USB 3.0, and SD card slots', 15000.00, 'computers', 'hubs', '/placeholder.svg?height=300&width=300', 25, true, true),
@@ -20,5 +20,3 @@ INSERT INTO products (name, description, price, category, subcategory, image_url
 ('Nigerian History', 'Comprehensive history of Nigeria from ancient times', 7500.00, 'books', 'history', '/placeholder.svg?height=300&width=300', 15, false, true),
 ('Research Methodology', 'Guide to conducting academic and scientific research', 13500.00, 'books', 'academic', '/placeholder.svg?height=300&width=300', 20, true, true);
 
--- Create admin user (you'll need to sign up first, then update the role)
--- UPDATE profiles SET role = 'admin' WHERE email = 'admin@smartzglobal.com';

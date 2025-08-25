@@ -1,11 +1,10 @@
 -- Order and Stock Management Notification Triggers
--- This script creates triggers to send notifications for orders and update stock quantities
 
 -- Function to notify when order is created
 CREATE OR REPLACE FUNCTION notify_order_created()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Notify user
+  -- to notify the user
   INSERT INTO notifications (user_id, title, message, type, role)
   VALUES (
     NEW.user_id,
@@ -14,14 +13,14 @@ BEGIN
     'success',
     'user'
   );
-  -- Notify admin
+  -- to notify the admin
   INSERT INTO notifications (user_id, title, message, type, role)
   SELECT id, 'New Order Received', 'A new order #' || NEW.id || ' has been placed.', 'info', 'admin' FROM auth.users WHERE role = 'admin';
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger for order creation
+-- the trigger for order creation
 CREATE TRIGGER order_created_notification_trigger
   AFTER INSERT ON orders
   FOR EACH ROW
@@ -32,7 +31,7 @@ CREATE OR REPLACE FUNCTION notify_order_status_change()
 RETURNS TRIGGER AS $$
 BEGIN
   IF OLD.status != NEW.status THEN
-    -- Notify user
+    -- to notify the user
     INSERT INTO notifications (user_id, title, message, type, role)
     VALUES (
       NEW.user_id,
@@ -41,7 +40,7 @@ BEGIN
       'info',
       'user'
     );
-    -- Notify admin
+    -- to notify the admin
     INSERT INTO notifications (user_id, title, message, type, role)
     SELECT id, 'Order Status Updated', 'Order #' || NEW.id || ' status has been updated to: ' || NEW.status || '.', 'info', 'admin' FROM auth.users WHERE role = 'admin';
   END IF;
@@ -59,12 +58,12 @@ CREATE TRIGGER order_status_change_notification_trigger
 CREATE OR REPLACE FUNCTION update_product_stock_on_order()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Update product stock quantity
+  -- to update product stock quantity
   UPDATE products 
   SET stock_quantity = stock_quantity - NEW.quantity
   WHERE id = NEW.product_id;
   
-  -- Notify user about stock update
+  -- to notify user about stock update
   INSERT INTO notifications (user_id, title, message, type)
   VALUES (
     (SELECT user_id FROM orders WHERE id = NEW.order_id),
@@ -77,7 +76,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger for order item creation (stock update)
+-- the trigger for order item creation (stock update)
 CREATE TRIGGER order_item_stock_update_trigger
   AFTER INSERT ON order_items
   FOR EACH ROW

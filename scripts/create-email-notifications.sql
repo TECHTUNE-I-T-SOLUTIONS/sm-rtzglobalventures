@@ -1,4 +1,4 @@
--- Create email notifications table
+-- Created email notifications table
 CREATE TABLE IF NOT EXISTS email_notifications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   recipient_email VARCHAR(255) NOT NULL,
@@ -12,13 +12,13 @@ CREATE TABLE IF NOT EXISTS email_notifications (
   metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- Create indexes for better performance
+-- Created indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_email_notifications_recipient ON email_notifications(recipient_email);
 CREATE INDEX IF NOT EXISTS idx_email_notifications_status ON email_notifications(status);
 CREATE INDEX IF NOT EXISTS idx_email_notifications_type ON email_notifications(notification_type);
 CREATE INDEX IF NOT EXISTS idx_email_notifications_created_at ON email_notifications(created_at);
 
--- Create updated_at trigger
+-- Created updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -35,19 +35,19 @@ CREATE TRIGGER update_email_notifications_updated_at
 -- Enable RLS
 ALTER TABLE email_notifications ENABLE ROW LEVEL SECURITY;
 
--- Create policies
+-- Created policies
 CREATE POLICY "Service role can manage email notifications" ON email_notifications
   FOR ALL USING (auth.role() = 'service_role');
 
 CREATE POLICY "Users can view their own email notifications" ON email_notifications
   FOR SELECT USING (recipient_email = auth.email());
 
--- Create function to trigger email notifications
+-- Created function to trigger email notifications
 CREATE OR REPLACE FUNCTION trigger_email_notification()
 RETURNS TRIGGER AS $$
 BEGIN
   -- This would typically call a Supabase Edge Function
-  -- For now, we'll just update the status
+  -- For now, I'll just update the status, I'll add more later
   PERFORM pg_notify('email_notification', json_build_object(
     'id', NEW.id,
     'email', NEW.recipient_email,
@@ -59,7 +59,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger
+-- Created trigger
 CREATE TRIGGER email_notification_trigger
   AFTER INSERT ON email_notifications
   FOR EACH ROW

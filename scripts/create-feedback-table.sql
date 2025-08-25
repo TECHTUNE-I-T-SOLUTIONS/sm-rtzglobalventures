@@ -1,4 +1,4 @@
--- Create feedback table
+-- Created feedback table
 CREATE TABLE IF NOT EXISTS feedback (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -11,16 +11,16 @@ CREATE TABLE IF NOT EXISTS feedback (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create indexes for better performance
+-- Created indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status);
 CREATE INDEX IF NOT EXISTS idx_feedback_category ON feedback(category);
 CREATE INDEX IF NOT EXISTS idx_feedback_rating ON feedback(rating);
 
--- Enable Row Level Security
+-- Enabled Row Level Security
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for feedback
+-- Created RLS policies for feedback
 CREATE POLICY "Users can view their own feedback" ON feedback
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -45,11 +45,11 @@ CREATE POLICY "Admins can update all feedback" ON feedback
     )
   );
 
--- Create trigger function for feedback notifications
+-- Created trigger function for feedback notifications
 CREATE OR REPLACE FUNCTION handle_feedback_notification()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Insert notification for admins when new feedback is submitted
+  -- to insert notification for admins when new feedback is submitted
   INSERT INTO notifications (user_id, title, message, type)
   SELECT 
     p.id,
@@ -70,7 +70,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for feedback notifications
+-- Created trigger for feedback notifications
 CREATE TRIGGER feedback_notification_trigger
   AFTER INSERT ON feedback
   FOR EACH ROW

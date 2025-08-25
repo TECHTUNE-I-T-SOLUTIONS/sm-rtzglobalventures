@@ -1,4 +1,4 @@
--- Create the ebooks table
+-- to create the ebooks table
 CREATE TABLE public.ebooks (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     title text NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE public.ebooks (
     CONSTRAINT ebooks_pkey PRIMARY KEY (id)
 ) TABLESPACE pg_default;
 
--- Create trigger to update the updated_at column
+-- to create trigger to update the updated_at column
 CREATE TRIGGER update_ebooks_updated_at
 BEFORE UPDATE ON public.ebooks
 FOR EACH ROW

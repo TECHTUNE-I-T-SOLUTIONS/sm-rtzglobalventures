@@ -1,10 +1,6 @@
--- Update Supabase Email Templates for Professional Admin Verification
--- This script updates the email templates in Supabase for better admin verification emails
-
--- Note: These templates need to be manually updated in the Supabase Dashboard
--- Go to Authentication > Email Templates and update the following:
-
--- 1. CONFIRM_SIGNUP Template (for admin verification)
+-- manual html codes to update supabase email notifications
+-- remember that the templates use {{ .Token }} and {{ .ConfirmationURL }} which are Supabase's template variables
+-- 1. CONFIRM_SIGNUP Template for admin verification
 /*
 Subject: Sm@rtz Global Admin Verification - {{ .Token }}
 
@@ -149,7 +145,7 @@ Subject: Sm@rtz Global Admin Verification - {{ .Token }}
 </html>
 */
 
--- 2. MAGIC_LINK Template (for password reset)
+-- 2. MAGIC_LINK Template for password reset
 /*
 Subject: Sm@rtz Global Admin Password Reset
 
@@ -273,10 +269,4 @@ Subject: Sm@rtz Global Admin Password Reset
 </html>
 */
 
--- Instructions for manual setup:
--- 1. Go to Supabase Dashboard > Authentication > Email Templates
--- 2. Update the CONFIRM_SIGNUP template with the HTML above
--- 3. Update the MAGIC_LINK template with the HTML above
--- 4. Save the templates
 
--- Note: The templates use {{ .Token }} and {{ .ConfirmationURL }} which are Supabase template variables 
